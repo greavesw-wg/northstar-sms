@@ -839,5 +839,26 @@ def toggle_service(record_id):
         "error": "Record not found."
     }), 404
 
+@app.route("/api/client-properties", methods=["POST"])
+def create_client_properties():
+    try:
+        data = request.get_json()
+
+        print("=== NEW CLIENT CONFIG ===")
+        print(data)
+
+        return {
+            "status": "success",
+            "message": "Client profile created",
+            "data": data
+        }, 200
+
+    except Exception as e:
+        print("ERROR:", str(e))
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
