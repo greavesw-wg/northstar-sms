@@ -323,8 +323,9 @@ def contact():
     print(f"Message: {message}")
     print("=" * 70 + "\n")
 
-    try:
-        sms_body = f"""
+    sms_status = "not attempted"
+
+    sms_body = f"""
     NEW NORTH STAR LEAD
     Score: {score}
     Category: {category}
@@ -335,24 +336,28 @@ def contact():
 
     Summary:
     {summary}
+    ---
     """
 
+    try:
         sms = twilio_client.messages.create(
             body=sms_body,
             from_=os.getenv("TWILIO_PHONE_NUMBER"),
             to=os.getenv("MY_PHONE_NUMBER")
         )
-
         print(f"Twilio SID: {sms.sid}")
         print(f"Twilio Status: {sms.status}")
+        sms_status = "sent"
 
     except Exception as e:
         print("TWILIO ERROR:")
         print(str(e))
+        sms_status = f"failed: {str(e)}"
 
     return jsonify({
         "success": True,
-        "message": "Lead captured successfully."
+        "message": "Lead captured successfully.",
+        "sms_status": sms_status
     })
 
 @app.route("/api/client-properties", methods=["POST"])
@@ -838,27 +843,6 @@ def toggle_service(record_id):
         "success": False,
         "error": "Record not found."
     }), 404
-
-@app.route("/api/client-properties", methods=["POST"])
-def create_client_properties():
-    try:
-        data = request.get_json()
-
-        print("=== NEW CLIENT CONFIG ===")
-        print(data)
-
-        return {
-            "status": "success",
-            "message": "Client profile created",
-            "data": data
-        }, 200
-
-    except Exception as e:
-        print("ERROR:", str(e))
-        return {
-            "status": "error",
-            "message": str(e)
-        }, 500
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
