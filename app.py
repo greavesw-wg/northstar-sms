@@ -238,6 +238,32 @@ def sms_fallback():
 
     return "Logged", 200
 
+@app.route("/maintenance-request", methods=["POST"])
+def maintenance_request():
+    data = request.get_json(silent=True) or {}
+
+    name = str(data.get("name", "")).strip()
+    phone = str(data.get("phone", "")).strip()
+    issue = str(data.get("issue", "")).strip()
+
+    if not name or not phone or not issue:
+        return jsonify({"error": "Name, phone, and issue are required."}), 400
+
+    log_activity(
+        event_type="maintenance_request_received",
+        client=name,
+        property_name="N/A",
+        action="maintenance_request",
+        result="received"
+    )
+
+    with open("maintenance_requests.csv", "a", encoding="utf-8") as f:
+        f.write(f"{datetime.now()} | {name} | {phone} | {issue}\n")
+
+    return jsonify({
+        "success": True,
+        "message": "Maintenance request submitted."
+    }), 200
 @app.route("/contact", methods=["POST"])
 def contact():
     data = request.get_json(silent=True) or {}
