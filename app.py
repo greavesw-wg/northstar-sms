@@ -1,17 +1,43 @@
+import psycopg2
+import os
+import csv
+
 from flask import Flask, request, jsonify, redirect, url_for
 from flask_cors import CORS
 from datetime import datetime
 from uuid import uuid4
 from typing import Any
-import csv
-import os
 
 from dotenv import load_dotenv
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from openai import OpenAI
-
 load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL)
+
+def init_db():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS maintenance_requests (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            issue TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+init_db()
+
 
 twilio_client = Client(
     os.getenv("TWILIO_ACCOUNT_SID"),
@@ -249,21 +275,32 @@ def maintenance_request():
     if not name or not phone or not issue:
         return jsonify({"error": "Name, phone, and issue are required."}), 400
 
-    log_activity(
-        event_type="maintenance_request_received",
-        client=name,
-        property_name="N/A",
-        action="maintenance_request",
-        result="received"
-    )
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
 
-    with open("maintenance_requests.csv", "a", encoding="utf-8") as f:
-        f.write(f"{datetime.now()} | {name} | {phone} | {issue}\n")
+        cur.execute("""
+            INSERT INTO maintenance_requests (name, phone, issue)
+            VALUES (%s, %s, %s)
+        """, (name, phone, issue))
 
-    return jsonify({
-        "success": True,
-        "message": "Maintenance request submitted."
-    }), 200
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "message": "Maintenance request submitted."
+        }), 200
+
+    except Exception as e:
+        print("DATABASE ERROR:", e)
+
+        return jsonify({
+            "success": False,
+            "error": "Database insert failed"
+        }), 500
+
 @app.route("/contact", methods=["POST"])
 def contact():
     data = request.get_json(silent=True) or {}
@@ -366,14 +403,12 @@ def contact():
     """
 
     try:
-        sms = twilio_client.messages.create(
-            body=sms_body,
-            from_=os.getenv("TWILIO_PHONE_NUMBER"),
-            to=os.getenv("MY_PHONE_NUMBER")
-        )
-        print(f"Twilio SID: {sms.sid}")
-        print(f"Twilio Status: {sms.status}")
-        sms_status = "sent"
+        print("=== SMS SIMULATION ===")
+        print(f"To: {os.getenv('MY_PHONE_NUMBER')}")
+        print(f"Message:\n{sms_body}")
+        print("======================")
+
+        sms_status = "simulated"
 
     except Exception as e:
         print("TWILIO ERROR:")
