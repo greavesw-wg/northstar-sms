@@ -288,9 +288,14 @@ def maintenance_request():
         """, (name, phone, issue))
 
         conn.commit()
+        sms_phone = "+1" + phone
+        message = twilio_client.messages.create(
+            body="North Star AI: Your maintenance request has been received. We’ll send updates here.",
+            from_=os.getenv("TWILIO_PHONE_NUMBER"),
+            to=sms_phone
+        )
         cur.close()
         conn.close()
-
         return jsonify({
             "success": True,
             "message": "Maintenance request submitted."
