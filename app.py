@@ -2,18 +2,21 @@ import psycopg2
 import os
 import csv
 import re
+
 from flask import Flask, request, jsonify, redirect, url_for
 from flask_cors import CORS
 from datetime import datetime
 from uuid import uuid4
 from typing import Any
-
 from dotenv import load_dotenv
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from openai import OpenAI
 load_dotenv()
+
 DATABASE_URL = os.getenv("DATABASE_URL")
+def clean_phone(phone):
+    return re.sub(r"\D", "", str(phone).strip())
 
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
@@ -269,8 +272,7 @@ def maintenance_request():
     data = request.get_json(silent=True) or {}
 
     name = str(data.get("name", "")).strip()
-    phone = str(data.get("phone", "")).strip()
-    phone = re.sub(r'\D', '', phone)
+    phone = clean_phone(data.get("phone", ""))
     issue = str(data.get("issue", "")).strip()
 
     if not name or not phone or not issue:
@@ -309,8 +311,7 @@ def contact():
     first_name = str(data.get("first_name", "")).strip()
     last_name = str(data.get("last_name", "")).strip()
     email = str(data.get("email", "")).strip()
-    phone = str(data.get("phone", "")).strip()
-    phone = re.sub(r'\D', '', phone)
+    phone = clean_phone(data.get("phone", ""))
     company_property = str(data.get("company_property", "")).strip()
     unit_count = str(data.get("unit_count", "")).strip()
     current_pms = str(data.get("current_pms", "")).strip()
