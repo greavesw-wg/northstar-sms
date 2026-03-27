@@ -1,7 +1,7 @@
 import psycopg2
 import os
 import csv
-import re  
+import re
 from flask import Flask, request, jsonify, redirect, url_for
 from flask_cors import CORS
 from datetime import datetime
