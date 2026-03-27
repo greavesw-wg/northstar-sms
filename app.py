@@ -1,7 +1,7 @@
 import psycopg2
 import os
 import csv
-
+import re  
 from flask import Flask, request, jsonify, redirect, url_for
 from flask_cors import CORS
 from datetime import datetime
@@ -309,6 +309,7 @@ def contact():
     last_name = str(data.get("last_name", "")).strip()
     email = str(data.get("email", "")).strip()
     phone = str(data.get("phone", "")).strip()
+    phone = re.sub(r'\D', '', phone)
     company_property = str(data.get("company_property", "")).strip()
     unit_count = str(data.get("unit_count", "")).strip()
     current_pms = str(data.get("current_pms", "")).strip()
