@@ -270,6 +270,7 @@ def maintenance_request():
 
     name = str(data.get("name", "")).strip()
     phone = str(data.get("phone", "")).strip()
+    phone = re.sub(r'\D', '', phone)
     issue = str(data.get("issue", "")).strip()
 
     if not name or not phone or not issue:
