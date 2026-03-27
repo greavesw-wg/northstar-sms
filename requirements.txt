@@ -4,3 +4,4 @@ openai
 gunicorn
 flask-cors
 python-dotenv
+psycopg2-binary
