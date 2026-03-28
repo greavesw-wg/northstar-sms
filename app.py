@@ -282,37 +282,39 @@ def maintenance_request():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        cur.execute("""
+        cur.execute(
+            """
             INSERT INTO maintenance_requests (name, phone, issue)
             VALUES (%s, %s, %s)
-        """, (name, phone, issue))
-
-    conn.commit()
-
-    sms_phone = "+1" + phone
-
-    try:
-        twilio_client.messages.create(
-            body="North Star AI: Your maintenance request has been received. We’ll send updates here.",
-            from_=os.getenv("TWILIO_PHONE_NUMBER"),
-            to=sms_phone
+            """,
+            (name, phone, issue)
         )
-        print("SMS sent successfully")
 
-    except Exception as sms_error:
-        print("SMS ERROR:", sms_error)
+        conn.commit()
+
+        sms_phone = "+1" + phone
+
+        try:
+            twilio_client.messages.create(
+                body="North Star AI: Your maintenance request has been received. We’ll send updates here.",
+                from_=os.getenv("TWILIO_PHONE_NUMBER"),
+                to=sms_phone
+            )
+            print("SMS sent successfully")
+
+        except Exception as sms_error:
+            print("SMS ERROR:", sms_error)
 
         cur.close()
         conn.close()
 
         return jsonify({
-        "success": True,
-        "message": "Maintenance request submitted."
-    }), 200
+            "success": True,
+            "message": "Maintenance request submitted."
+        }), 200
 
     except Exception as e:
         print("DATABASE ERROR:", e)
-
         return jsonify({
             "success": False,
             "error": "Database insert failed"
