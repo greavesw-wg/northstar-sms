@@ -311,15 +311,15 @@ def maintenance_request():
         sms_phone = format_phone(phone)
 
         try:
-            twilio_client.messages.create(
+            message = twilio_client.messages.create(
                 body="North Star AI: Your maintenance request has been received. We’ll send updates here.",
                 from_=os.getenv("TWILIO_PHONE_NUMBER"),
                 to=sms_phone
             )
-            print("SMS sent successfully")
-
+            print(
+                f"SMS queued. SID={message.sid}, status={message.status}, to={sms_phone}, from={os.getenv('TWILIO_PHONE_NUMBER')}")
         except Exception as sms_error:
-            print("SMS ERROR:", sms_error)
+            print(f"SMS ERROR sending to {sms_phone}: {sms_error}")
 
         cur.close()
         conn.close()
