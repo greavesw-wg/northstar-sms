@@ -285,9 +285,6 @@ def format_phone(phone: str) -> str:
 
 @app.route("/maintenance-request", methods=["POST"])
 def maintenance_request():
-
-@app.route("/maintenance-request", methods=["POST"])
-def maintenance_request():
     data = request.get_json(silent=True) or {}
 
     name = str(data.get("name", "")).strip()
