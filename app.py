@@ -267,6 +267,25 @@ def sms_fallback():
 
     return "Logged", 200
 
+def sms_fallback():
+    ...
+    return "Logged", 200
+
+def format_phone(phone: str) -> str:
+    digits = re.sub(r"\D", "", phone)
+
+    if len(digits) == 10:
+        digits = "1" + digits
+    elif len(digits) == 11 and digits.startswith("1"):
+        pass
+    else:
+        raise ValueError(f"Invalid phone number: {phone}")
+
+    return f"+{digits}"
+
+@app.route("/maintenance-request", methods=["POST"])
+def maintenance_request():
+
 @app.route("/maintenance-request", methods=["POST"])
 def maintenance_request():
     data = request.get_json(silent=True) or {}
@@ -292,7 +311,7 @@ def maintenance_request():
 
         conn.commit()
 
-        sms_phone = "+1" + phone
+        sms_phone = format_phone(phone)
 
         try:
             twilio_client.messages.create(
