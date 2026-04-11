@@ -313,7 +313,7 @@ def maintenance_request():
         try:
             message = twilio_client.messages.create(
                 body="North Star AI: Your maintenance request has been received. We’ll send updates here.",
-                from_=os.getenv("TWILIO_PHONE_NUMBER"),
+                messaging_service_sid=os.getenv("TWILIO_MESSAGING_SERVICE_SID"),
                 to=sms_phone
             )
             print(
