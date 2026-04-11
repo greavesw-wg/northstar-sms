@@ -285,6 +285,24 @@ def sms_fallback():
     return "Logged", 200
 
 
+def sms_fallback():
+    ...
+    return "Logged", 200
+
+
+def format_phone(phone: str) -> str:
+    digits = re.sub(r"\D", "", phone)
+
+    if len(digits) == 10:
+        digits = "1" + digits
+    elif len(digits) == 11 and digits.startswith("1"):
+        pass
+    else:
+        raise ValueError(f"Invalid phone number: {phone}")
+
+    return f"+{digits}"
+
+
 @app.route("/maintenance-request", methods=["POST"])
 def maintenance_request():
     data = request.get_json(silent=True) or {}
@@ -310,18 +328,18 @@ def maintenance_request():
 
         conn.commit()
 
-        sms_phone = "+1" + phone
+        sms_phone = format_phone(phone)
 
         try:
-            twilio_client.messages.create(
-                body="North Star AI: Your maintenance request has been received. We’ll send updates here.",
-                from_=os.getenv("TWILIO_PHONE_NUMBER"),
+            message = twilio_client.messages.create(
+                body="North Star AI: Your maintenance request has been received. Updates to your maintenance request will be sent to this number.",
+                messaging_service_sid=os.getenv("TWILIO_MESSAGING_SERVICE_SID"),
                 to=sms_phone
             )
-            print("SMS sent successfully")
-
+            print(
+                f"SMS queued. SID={message.sid}, status={message.status}, to={sms_phone}, from={os.getenv('TWILIO_PHONE_NUMBER')}")
         except Exception as sms_error:
-            print("SMS ERROR:", sms_error)
+            print(f"SMS ERROR sending to {sms_phone}: {sms_error}")
 
         cur.close()
         conn.close()
