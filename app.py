@@ -12,14 +12,19 @@ from dotenv import load_dotenv
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from openai import OpenAI
+
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+
 def clean_phone(phone):
     return re.sub(r"\D", "", str(phone).strip())
 
+
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
+
 
 def init_db():
     conn = get_db_connection()
@@ -39,8 +44,8 @@ def init_db():
     cur.close()
     conn.close()
 
-init_db()
 
+init_db()
 
 twilio_client = Client(
     os.getenv("TWILIO_ACCOUNT_SID"),
@@ -48,7 +53,6 @@ twilio_client = Client(
 )
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 
 app = Flask(__name__)
 CORS(app)
@@ -60,6 +64,8 @@ CORS(app)
 
 client_properties: list[dict[str, Any]] = []
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 def load_client_properties():
     global client_properties
     client_properties = []
@@ -71,9 +77,11 @@ def load_client_properties():
         reader = csv.DictReader(f)
         for row in reader:
             row["unit_count"] = int(row["unit_count"]) if row.get("unit_count") not in (None, "", "None") else None
-            row["building_count"] = int(row["building_count"]) if row.get("building_count") not in (None, "", "None") else None
+            row["building_count"] = int(row["building_count"]) if row.get("building_count") not in (None, "",
+                                                                                                    "None") else None
             row["service_enabled"] = str(row.get("service_enabled", "")).lower() == "true"
             client_properties.append(row)
+
 
 def save_client_properties():
     os.makedirs(os.path.dirname(CLIENT_PROPERTIES_FILE), exist_ok=True)
@@ -98,12 +106,14 @@ def save_client_properties():
     ]
 
     with open(CLIENT_PROPERTIES_FILE, "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(client_properties)
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(client_properties)
+
 
 def now_iso() -> str:
     return datetime.utcnow().isoformat(timespec="seconds") + "Z"
+
 
 def validate_client_property_payload(data: dict[str, Any]):
     required_fields = ["client_name", "property_name"]
@@ -114,12 +124,14 @@ def validate_client_property_payload(data: dict[str, Any]):
 
     return True, ""
 
+
 LEADS_FILE = os.path.join(BASE_DIR, "leads.csv")
 LOG_FILE = os.path.join(BASE_DIR, "Logs", "work_orders.csv")
 FAIL_LOG = os.path.join(BASE_DIR, "logs", "failed_messages.log")
 CLIENT_PROPERTIES_FILE = os.path.join(BASE_DIR, "data", "client_properties.csv")
 ACTIVITY_LOG = os.path.join(BASE_DIR, "logs", "activity_log.csv")
 load_client_properties()
+
 
 def log_message(from_number, message):
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
@@ -130,6 +142,7 @@ def log_message(from_number, message):
             from_number,
             message
         ])
+
 
 def log_activity(event_type, client="", property_name="", action="", result=""):
     os.makedirs(os.path.dirname(ACTIVITY_LOG), exist_ok=True)
@@ -157,6 +170,7 @@ def log_activity(event_type, client="", property_name="", action="", result=""):
             result,
         ])
 
+
 def ensure_csv_exists():
     if not os.path.exists(LEADS_FILE):
         with open(LEADS_FILE, "w", newline="", encoding="utf-8") as f:
@@ -176,6 +190,7 @@ def ensure_csv_exists():
                 "summary",
                 "message"
             ])
+
 
 def analyze_lead_with_openai(first_name, last_name, company_property, unit_count, current_pms, message):
     prompt = f"""
@@ -237,6 +252,7 @@ Message: {message}
             "summary": "Lead submitted through the North Star contact form."
         }
 
+
 @app.route("/sms", methods=["POST"])
 def sms_handler():
     from_number = request.form.get("From", "").strip()
@@ -253,9 +269,10 @@ def sms_handler():
     )
 
     return str(resp)
+
+
 @app.route("/sms-fallback", methods=["POST"])
 def sms_fallback():
-
     from_number = request.form.get("From", "").strip()
     message = request.form.get("Body", "").strip()
 
@@ -267,21 +284,6 @@ def sms_fallback():
 
     return "Logged", 200
 
-def sms_fallback():
-    ...
-    return "Logged", 200
-
-def format_phone(phone: str) -> str:
-    digits = re.sub(r"\D", "", phone)
-
-    if len(digits) == 10:
-        digits = "1" + digits
-    elif len(digits) == 11 and digits.startswith("1"):
-        pass
-    else:
-        raise ValueError(f"Invalid phone number: {phone}")
-
-    return f"+{digits}"
 
 @app.route("/maintenance-request", methods=["POST"])
 def maintenance_request():
@@ -308,18 +310,18 @@ def maintenance_request():
 
         conn.commit()
 
-        sms_phone = format_phone(phone)
+        sms_phone = "+1" + phone
 
         try:
-            message = twilio_client.messages.create(
+            twilio_client.messages.create(
                 body="North Star AI: Your maintenance request has been received. We’ll send updates here.",
-                messaging_service_sid=os.getenv("TWILIO_MESSAGING_SERVICE_SID"),
+                from_=os.getenv("TWILIO_PHONE_NUMBER"),
                 to=sms_phone
             )
-            print(
-                f"SMS queued. SID={message.sid}, status={message.status}, to={sms_phone}, from={os.getenv('TWILIO_PHONE_NUMBER')}")
+            print("SMS sent successfully")
+
         except Exception as sms_error:
-            print(f"SMS ERROR sending to {sms_phone}: {sms_error}")
+            print("SMS ERROR:", sms_error)
 
         cur.close()
         conn.close()
@@ -335,6 +337,7 @@ def maintenance_request():
             "success": False,
             "error": "Database insert failed"
         }), 500
+
 
 @app.route("/contact", methods=["POST"])
 def contact():
@@ -456,6 +459,7 @@ def contact():
         "sms_status": sms_status
     })
 
+
 @app.route("/api/client-properties", methods=["POST"])
 def create_client_property():
     data = request.get_json(silent=True) or {}
@@ -499,12 +503,14 @@ def create_client_property():
         "record": record
     }), 201
 
+
 @app.route("/api/client-properties", methods=["GET"])
 def list_client_properties():
     return jsonify({
         "count": len(client_properties),
         "clients": client_properties
     })
+
 
 @app.route("/api/client-properties/<record_id>", methods=["PATCH"])
 def update_client_property(record_id):
@@ -568,6 +574,7 @@ def update_client_property(record_id):
         "message": "Client property updated successfully.",
         "record": record
     }), 200
+
 
 @app.route("/dashboard")
 def dashboard():
@@ -641,7 +648,7 @@ def dashboard():
                 box-shadow: 0 4px 14px rgba(0,0,0,0.25);
                 margin-bottom: 16px;  /* tighter spacing between panels */
             }}
-      
+
             table {{
                 width: 100%;
                 border-collapse: collapse;
@@ -660,39 +667,39 @@ def dashboard():
                 font-size: 12px;
                 letter-spacing: 0.05em;
             }}
-            
+
             .ops-table {{
                 width: 100%;
                 border-collapse: collapse;
                 table-layout: fixed;
             }}
-            
+
             .ops-table thead {{
                 display: table;
                 width: 100%;
                 table-layout: fixed;
             }}
-            
+
             .ops-table thead th {{
                 position: sticky;
                 top: 0;
                 background: #111827;
                 z-index: 2;
             }}
-            
+
             .ops-table tbody {{
                 display: block;
                 max-height: 120px;
                 overflow-y: auto;
                 width: 100%;
             }}
-            
+
             .ops-table tbody tr {{
                 display: table;
                 width: 100%;
                 table-layout: fixed;
             }}
-            
+
             .ops-table th,
             .ops-table td {{
                 padding: 8px 8px;
@@ -702,11 +709,11 @@ def dashboard():
                 vertical-align: top;
                 line-height: 1.2;
             }}
-            
+
             .ops-table th {{
                 font-size: 11px;
             }}       
-                      
+
             .badge {{
                 display: inline-block;
                 padding: 4px 10px;
@@ -918,6 +925,7 @@ def dashboard():
 
     return html
 
+
 @app.route("/toggle-service/<record_id>", methods=["POST"])
 def toggle_service(record_id):
     for record in client_properties:
@@ -939,6 +947,7 @@ def toggle_service(record_id):
         "success": False,
         "error": "Record not found."
     }), 404
+
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
