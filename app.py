@@ -17,6 +17,23 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+def check_auth(username, password):
+    return username == os.getenv("DASHBOARD_USER") and password == os.getenv("DASHBOARD_PASS")
+
+def authenticate():
+    return Response(
+        'Login required', 401,
+        {'WWW-Authenticate': 'Basic realm="Login Required"'}
+    )
+
+def requires_auth(f):
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    decorated.__name__ = f.__name__
+    return decorated
 
 def clean_phone(phone):
     return re.sub(r"\D", "", str(phone).strip())
@@ -593,8 +610,8 @@ def update_client_property(record_id):
         "record": record
     }), 200
 
-
 @app.route("/dashboard")
+@requires_auth
 def dashboard():
 
     conn = get_db_connection()
