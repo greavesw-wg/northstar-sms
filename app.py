@@ -3,7 +3,7 @@ import os
 import csv
 import re
 
-from flask import Flask, request, jsonify, redirect, url_for
+from flask import Flask, request, jsonify, redirect, url_for, Response
 from flask_cors import CORS
 from datetime import datetime
 from uuid import uuid4
@@ -596,17 +596,51 @@ def update_client_property(record_id):
 
 @app.route("/dashboard")
 def dashboard():
-    total_clients = len(client_properties)
-    enabled_clients = sum(1 for c in client_properties if c.get("service_enabled"))
-    disabled_clients = total_clients - enabled_clients
-    total_units = sum(int(c.get("unit_count") or 0) for c in client_properties)
 
-    recent_activity = []
-    if os.path.exists(ACTIVITY_LOG):
-        with open(ACTIVITY_LOG, "r", encoding="utf-8") as f:
-            lines = f.readlines()[1:]  # skip header
-            recent_activity = lines[-5:]  # last 5 events
-            recent_activity.reverse()  # newest first
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # Total requests
+    cur.execute("SELECT COUNT(*) FROM maintenance_requests")
+    total_requests = cur.fetchone()[0]
+
+    # Recent requests
+    cur.execute("""
+            SELECT name, phone, issue, created_at
+            FROM maintenance_requests
+            ORDER BY created_at DESC
+            LIMIT 5
+        """)
+    recent_requests = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    total_clients = total_requests
+    enabled_clients = 0
+    disabled_clients = 0
+    total_units = 0
+
+    activity_rows = ""
+
+    for r in recent_requests:
+        activity_rows += f"""
+            <tr>
+                <td>{r[3]}</td>
+                <td>Maintenance Request</td>
+                <td>{r[0]}</td>
+                <td>-</td>
+                <td>{r[2]}</td>
+                <td>Logged</td>
+            </tr>
+        """
+
+    if not activity_rows:
+        activity_rows = """
+            <tr>
+                <td colspan="6">No recent activity yet.</td>
+            </tr>
+        """
 
     html = f"""
     <!DOCTYPE html>
@@ -822,121 +856,16 @@ def dashboard():
                     </thead>
                     <tbody>
     """
-
-    for row in recent_activity:
-        cols = row.strip().split(",", 5)
-        if len(cols) < 6:
-            continue
-
-        html += f"""
-                        <tr>
-                            <td>{cols[0]}</td>
-                            <td>{cols[1]}</td>
-                            <td>{cols[2]}</td>
-                            <td>{cols[3]}</td>
-                            <td>{cols[4]}</td>
-                            <td>{cols[5]}</td>
-                        </tr>
-        """
-
-    if not recent_activity:
-        html += """
-                        <tr>
-                            <td colspan="6">No recent activity yet.</td>
-                        </tr>
-        """
-
+    html += activity_rows
     html += f"""
-                    </tbody>
+    </tbody>
                 </table>
             </div>
-
-            <div class="cards">
-                <div class="card">
-                    <div class="card-label">Total Clients</div>
-                    <div class="card-value">{total_clients}</div>
-                </div>
-                <div class="card">
-                    <div class="card-label">Active Services</div>
-                    <div class="card-value">{enabled_clients}</div>
-                </div>
-                <div class="card">
-                    <div class="card-label">Disabled Services</div>
-                    <div class="card-value">{disabled_clients}</div>
-                </div>
-                <div class="card">
-                    <div class="card-label">Total Units</div>
-                    <div class="card-value">{total_units}</div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <h2 style="margin-top: 0;">Client Operations</h2>
-                <table class="ops-table">
-                    <thead>                        
-                            <th>Client</th>
-                            <th>Property</th>
-                            <th>Type</th>
-                            <th>Units</th>
-                            <th>Buildings</th>
-                            <th>PMS</th>
-                            <th>Onboarding</th>
-                            <th>Service State</th>
-                            <th>Control</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-    """
-
-    for c in client_properties:
-        service_enabled = bool(c.get("service_enabled"))
-        service_badge = (
-            '<span class="badge enabled">ENABLED</span>'
-            if service_enabled else
-            '<span class="badge disabled">DISABLED</span>'
-        )
-
-        onboarding_status = str(c.get("onboarding_status", "") or "").strip().lower()
-        if onboarding_status == "in_progress":
-            onboarding_badge = '<span class="badge progress">IN PROGRESS</span>'
-        elif onboarding_status in ("complete", "completed"):
-            onboarding_badge = '<span class="badge enabled">COMPLETE</span>'
-        else:
-            onboarding_badge = f'<span class="badge progress">{c.get("onboarding_status", "")}</span>'
-
-        btn_label = "Disable" if service_enabled else "Enable"
-        btn_class = "off" if service_enabled else ""
-
-        html += f"""
-                        <tr>
-                            <td>{c.get("client_name", "")}</td>
-                            <td>{c.get("property_name", "")}</td>
-                            <td>{c.get("property_type", "")}</td>
-                            <td>{c.get("unit_count", "")}</td>
-                            <td>{c.get("building_count", "")}</td>
-                            <td>{c.get("current_pms", "")}</td>
-                            <td>{onboarding_badge}</td>
-                            <td>{service_badge}</td>
-                            <td>
-                                <form method="post" action="/toggle-service/{c.get("id", "")}">
-                                    <button type="submit" class="{btn_class}">{btn_label}</button>
-                                </form>
-                            </td>
-                        </tr>
-        """
-
-    if not client_properties:
-        html += """
-                        <tr>
-                            <td colspan="9">No client properties loaded.</td>
-                        </tr>
-        """
+     """
 
     html += """
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    
+       </div>
     </body>
     </html>
     """
