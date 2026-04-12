@@ -326,10 +326,12 @@ def maintenance_request():
 
     name = str(data.get("name", "")).strip()
     phone = clean_phone(data.get("phone", ""))
+    building = str(data.get("building", "")).strip()
+    unit = str(data.get("unit", "")).strip()
     issue = str(data.get("issue", "")).strip()
 
-    if not name or not phone or not issue:
-        return jsonify({"error": "Name, phone, and issue are required."}), 400
+    if not name or not phone or not building or not unit or not issue:
+            return jsonify({"error": "Name, phone, and issue are required."}), 400
 
     try:
         conn = get_db_connection()
@@ -638,13 +640,24 @@ def dashboard():
     activity_rows = ""
 
     for r in recent_requests:
+        building = (r[1] or "").strip()
+        unit = (r[2] or "").strip()
+
+        if building and unit:
+            property_display = f"Building {building} • Unit {unit}"
+        elif building:
+            property_display = f"Building {building}"
+        elif unit:
+            property_display = f"Unit {unit}"
+        else:
+            property_display = "-"
+
         activity_rows += f"""
             <tr>
                 <td>{r[4]}</td>
                 <td>Maintenance Request</td>
                 <td>{r[0]}</td>
-                <td>{r[1] or "-"}</td>
-                <td>{r[2] or "-"}</td>
+                <td>{property_display}</td>
                 <td>{r[3]}</td>
                 <td>Logged</td>
             </tr>
@@ -653,7 +666,7 @@ def dashboard():
     if not activity_rows:
         activity_rows = """
             <tr>
-                <td colspan="7">No recent activity yet.</td>
+                <td colspan="6">No recent activity yet.</td>
             </tr>
         """
 
@@ -864,8 +877,7 @@ def dashboard():
                             <th>Time</th>
                             <th>Event</th>
                             <th>Client</th>
-                            <th>Building</th>
-                            <th>Unit</th>
+                            <th>Property</th>
                             <th>Issue</th>
                             <th>Result</th>
                         </tr>
