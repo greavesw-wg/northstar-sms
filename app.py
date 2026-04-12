@@ -335,13 +335,10 @@ def maintenance_request():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        cur.execute(
-            """
-            INSERT INTO maintenance_requests (name, phone, issue)
-            VALUES (%s, %s, %s)
-            """,
-            (name, phone, issue)
-        )
+        cur.execute("""
+            INSERT INTO maintenance_requests (name, phone, building, unit, issue)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (name, phone, building, unit, issue))
 
         conn.commit()
 
@@ -623,11 +620,11 @@ def dashboard():
 
     # Recent requests
     cur.execute("""
-            SELECT name, phone, issue, created_at
-            FROM maintenance_requests
-            ORDER BY created_at DESC
-            LIMIT 5
-        """)
+        SELECT name, building, unit, issue, created_at
+        FROM maintenance_requests
+        ORDER BY created_at DESC
+        LIMIT 5
+    """)
     recent_requests = cur.fetchall()
 
     cur.close()
@@ -643,11 +640,12 @@ def dashboard():
     for r in recent_requests:
         activity_rows += f"""
             <tr>
-                <td>{r[3]}</td>
+                <td>{r[4]}</td>
                 <td>Maintenance Request</td>
                 <td>{r[0]}</td>
-                <td>-</td>
-                <td>{r[2]}</td>
+                <td>{r[1] or "-"}</td>
+                <td>{r[2] or "-"}</td>
+                <td>{r[3]}</td>
                 <td>Logged</td>
             </tr>
         """
@@ -655,7 +653,7 @@ def dashboard():
     if not activity_rows:
         activity_rows = """
             <tr>
-                <td colspan="6">No recent activity yet.</td>
+                <td colspan="7">No recent activity yet.</td>
             </tr>
         """
 
@@ -866,8 +864,9 @@ def dashboard():
                             <th>Time</th>
                             <th>Event</th>
                             <th>Client</th>
-                            <th>Property</th>
-                            <th>Action</th>
+                            <th>Building</th>
+                            <th>Unit</th>
+                            <th>Issue</th>
                             <th>Result</th>
                         </tr>
                     </thead>
