@@ -705,14 +705,19 @@ def dashboard():
     cur = conn.cursor()
 
     # Total requests
-    cur.execute("SELECT COUNT(*) FROM maintenance_requests")
+    cur.execute("SELECT COUNT(*) FROM maintenance_requests_v2")
     total_requests = cur.fetchone()[0]
 
     # Recent requests
     cur.execute("""
-        SELECT name, building, unit, issue, created_at
-        FROM maintenance_requests
-        ORDER BY created_at DESC
+        SELECT
+            resident_name,
+            building_label,
+            unit_label,
+            issue_description,
+            submitted_at
+        FROM maintenance_requests_v2
+        ORDER BY submitted_at DESC
         LIMIT 5
     """)
     recent_requests = cur.fetchall()
