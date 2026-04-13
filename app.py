@@ -708,16 +708,17 @@ def dashboard():
     cur.execute("SELECT COUNT(*) FROM maintenance_requests_v2")
     total_requests = cur.fetchone()[0]
 
-    # Recent requests
     cur.execute("""
         SELECT
-            resident_name,
-            building_label,
-            unit_label,
-            issue_description,
-            submitted_at
-        FROM maintenance_requests_v2
-        ORDER BY submitted_at DESC
+            mr.resident_name,
+            p.property_name,
+            mr.building_label,
+            mr.unit_label,
+            mr.issue_description,
+            mr.submitted_at
+        FROM maintenance_requests_v2 mr
+        JOIN properties p ON mr.property_id = p.id
+        ORDER BY mr.submitted_at DESC
         LIMIT 5
     """)
     recent_requests = cur.fetchall()
@@ -733,25 +734,29 @@ def dashboard():
     activity_rows = ""
 
     for r in recent_requests:
-        building = (r[1] or "").strip()
-        unit = (r[2] or "").strip()
+        resident_name = r[0]
+        property_name = r[1]
+        building = (r[2] or "").strip()
+        unit = (r[3] or "").strip()
+        issue = r[4]
+        submitted_at = r[5]
 
         if building and unit:
-            property_display = f"Building {building} • Unit {unit}"
+            property_display = f"{property_name} • Building {building} • Unit {unit}"
         elif building:
-            property_display = f"Building {building}"
+            property_display = f"{property_name} • Building {building}"
         elif unit:
-            property_display = f"Unit {unit}"
+            property_display = f"{property_name} • Unit {unit}"
         else:
-            property_display = "-"
+            property_display = property_name or "-"
 
         activity_rows += f"""
             <tr>
-                <td>{r[4]}</td>
+                <td>{submitted_at}</td>
                 <td>Maintenance Request</td>
-                <td>{r[0]}</td>
+                <td>{resident_name}</td>
                 <td>{property_display}</td>
-                <td>{r[3]}</td>
+                <td>{issue}</td>
                 <td>Logged</td>
             </tr>
         """
