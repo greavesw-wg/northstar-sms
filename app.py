@@ -48,7 +48,7 @@ def init_db():
     cur = conn.cursor()
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS maintenance_requests (
+            CREATE TABLE IF NOT EXISTS maintenance_requests (
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             phone TEXT NOT NULL,
@@ -331,19 +331,107 @@ def maintenance_request():
     issue = str(data.get("issue", "")).strip()
 
     if not name or not phone or not building or not unit or not issue:
-            return jsonify({"error": "Name, phone, and issue are required."}), 400
+            return jsonify({"error": "Name, phone, building, unit, and issue are required."}), 400
 
     try:
         conn = get_db_connection()
         cur = conn.cursor()
 
         cur.execute("""
-            INSERT INTO maintenance_requests (name, phone, building, unit, issue)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (name, phone, building, unit, issue))
+                SELECT id, property_id
+                FROM buildings
+                WHERE building_code = %s
+                LIMIT 1
+            """, (building,))
+
+        building_row = cur.fetchone()
+
+        if not building_row:
+            return jsonify({"error": "Invalid building"}), 400
+
+        building_id = building_row[0]
+        property_id = building_row[1]
+
+        cur.execute("""
+            SELECT id
+            FROM units
+            WHERE building_id = %s AND unit_code = %s
+            LIMIT 1
+        """, (building_id, unit))
+
+        unit_row = cur.fetchone()
+
+        if not unit_row:
+            return jsonify({"error": "Invalid unit"}), 400
+
+        unit_id = unit_row[0]
+
+        cur.execute("""
+            SELECT id
+            FROM residents
+            WHERE phone = %s
+            LIMIT 1
+        """, (phone,))
+
+        resident_row = cur.fetchone()
+
+        if resident_row:
+            resident_id = resident_row[0]
+        else:
+            full_name_parts = name.split(" ", 1)
+            first_name = full_name_parts[0]
+            last_name = full_name_parts[1] if len(full_name_parts) > 1 else ""
+
+            cur.execute("""
+                INSERT INTO residents (
+                    unit_id,
+                    first_name,
+                    last_name,
+                    full_name,
+                    phone,
+                    sms_opt_in,
+                    status
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """, (unit_id, first_name, last_name, name, phone, True, "active"))
+
+            resident_id = cur.fetchone()[0]
+
+        cur.execute("""
+            INSERT INTO maintenance_requests_v2 (
+                client_id,
+                property_id,
+                building_id,
+                unit_id,
+                resident_id,
+                resident_name,
+                resident_phone,
+                building_label,
+                unit_label,
+                channel,
+                issue_description,
+                status,
+                acknowledgment_sent
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            1,
+            property_id,
+            building_id,
+            unit_id,
+            resident_id,
+            name,
+            phone,
+            building,
+            unit,
+            "web_form",
+            issue,
+            "new",
+            False
+        ))
 
         conn.commit()
-
         sms_phone = format_phone(phone)
 
         try:
