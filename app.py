@@ -734,7 +734,6 @@ def dashboard():
     activity_rows = ""
 
     for r in recent_requests:
-        request_id = r[0]
         resident_name = r[1]
         property_name = r[2]
         building = (r[3] or "").strip()
