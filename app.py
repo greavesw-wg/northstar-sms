@@ -734,12 +734,14 @@ def dashboard():
     activity_rows = ""
 
     for r in recent_requests:
-        resident_name = r[0]
-        property_name = r[1]
-        building = (r[2] or "").strip()
-        unit = (r[3] or "").strip()
-        issue = r[4]
-        submitted_at = r[5]
+        request_id = r[0]
+        resident_name = r[1]
+        property_name = r[2]
+        building = (r[3] or "").strip()
+        unit = (r[4] or "").strip()
+        issue = r[5]
+        status = r[6]
+        submitted_at = r[7]
 
         if building and unit:
             property_display = f"{property_name} • Building {building} • Unit {unit}"
@@ -750,6 +752,12 @@ def dashboard():
         else:
             property_display = property_name or "-"
 
+        status_label = {
+            "new": "New",
+            "in_progress": "In Progress",
+            "complete": "Complete"
+        }.get(status, "Unknown")
+
         activity_rows += f"""
             <tr>
                 <td>{submitted_at}</td>
@@ -757,7 +765,7 @@ def dashboard():
                 <td>{resident_name}</td>
                 <td>{property_display}</td>
                 <td>{issue}</td>
-                <td>Logged</td>
+                <td>{status_label}</td>      
             </tr>
         """
 
@@ -977,7 +985,7 @@ def dashboard():
                             <th>Client</th>
                             <th>Property</th>
                             <th>Issue</th>
-                            <th>Result</th>
+                            <th>STATUS</th>  
                         </tr>
                     </thead>
                     <tbody>
