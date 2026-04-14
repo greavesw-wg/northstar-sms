@@ -756,7 +756,6 @@ def dashboard():
         else:
             property_display = property_name or "-"
 
-        
 
         status_label = {
             "new": "New",
@@ -991,7 +990,7 @@ def dashboard():
                             <th>Client</th>
                             <th>Property</th>
                             <th>Issue</th>
-                            <th>Result</th>
+                            <th>STATUS</th>
                         </tr>
                     </thead>
                     <tbody>
