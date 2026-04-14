@@ -744,7 +744,8 @@ def dashboard():
         building = (r[2] or "").strip()
         unit = (r[3] or "").strip()
         issue = r[4]
-        submitted_at = r[5]
+        status = r[5]
+        submitted_at = r[6]
 
         if building and unit:
             property_display = f"{property_name} • Building {building} • Unit {unit}"
