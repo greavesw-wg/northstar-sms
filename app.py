@@ -755,6 +755,14 @@ def dashboard():
         else:
             property_display = property_name or "-"
 
+        status = r[5]
+
+        status_label = {
+            "new": "New",
+            "in_progress": "In Progress",
+            "complete": "Complete"
+        }.get(status, "Unknown")
+
         activity_rows += f"""
             <tr>
                 <td>{submitted_at}</td>
@@ -762,7 +770,7 @@ def dashboard():
                 <td>{resident_name}</td>
                 <td>{property_display}</td>
                 <td>{issue}</td>
-                <td>Logged</td>
+                <td>{status_label}</td>   
             </tr>
         """
 
