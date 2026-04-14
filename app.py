@@ -720,6 +720,7 @@ def dashboard():
             mr.building_label,
             mr.unit_label,
             mr.issue_description,
+            mr.status,
             mr.submitted_at
         FROM maintenance_requests_v2 mr
         JOIN properties p ON mr.property_id = p.id
