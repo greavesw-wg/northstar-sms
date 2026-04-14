@@ -720,6 +720,7 @@ def dashboard():
             mr.building_label,
             mr.unit_label,
             mr.issue_description,
+            mr.status,
             mr.submitted_at
         FROM maintenance_requests_v2 mr
         JOIN properties p ON mr.property_id = p.id
@@ -744,7 +745,8 @@ def dashboard():
         building = (r[2] or "").strip()
         unit = (r[3] or "").strip()
         issue = r[4]
-        submitted_at = r[5]
+        status = r[5]
+        submitted_at = r[6]
 
         if building and unit:
             property_display = f"{property_name} • Building {building} • Unit {unit}"
@@ -755,6 +757,13 @@ def dashboard():
         else:
             property_display = property_name or "-"
 
+
+        status_label = {
+            "new": "New",
+            "in_progress": "In Progress",
+            "complete": "Complete"
+        }.get(status, "Unknown")
+
         activity_rows += f"""
             <tr>
                 <td>{submitted_at}</td>
@@ -762,7 +771,7 @@ def dashboard():
                 <td>{resident_name}</td>
                 <td>{property_display}</td>
                 <td>{issue}</td>
-                <td>Logged</td>
+                <td>{status_label}</td>   
             </tr>
         """
 
@@ -982,7 +991,7 @@ def dashboard():
                             <th>Client</th>
                             <th>Property</th>
                             <th>Issue</th>
-                            <th>Result</th>
+                            <th>STATUS</th>
                         </tr>
                     </thead>
                     <tbody>
