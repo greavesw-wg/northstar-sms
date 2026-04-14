@@ -756,7 +756,7 @@ def dashboard():
         else:
             property_display = property_name or "-"
 
-        status = r[5]
+        
 
         status_label = {
             "new": "New",
