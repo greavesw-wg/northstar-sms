@@ -17,8 +17,10 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+
 def check_auth(username, password):
     return username == os.getenv("DASHBOARD_USER") and password == os.getenv("DASHBOARD_PASS")
+
 
 def authenticate():
     return Response(
@@ -26,14 +28,17 @@ def authenticate():
         {'WWW-Authenticate': 'Basic realm="Login Required"'}
     )
 
+
 def requires_auth(f):
     def decorated(*args, **kwargs):
         auth = request.authorization
         if not auth or not check_auth(auth.username, auth.password):
             return authenticate()
         return f(*args, **kwargs)
+
     decorated.__name__ = f.__name__
     return decorated
+
 
 def clean_phone(phone):
     return re.sub(r"\D", "", str(phone).strip())
@@ -331,7 +336,7 @@ def maintenance_request():
     issue = str(data.get("issue", "")).strip()
 
     if not name or not phone or not building or not unit or not issue:
-            return jsonify({"error": "Name, phone, building, unit, and issue are required."}), 400
+        return jsonify({"error": "Name, phone, building, unit, and issue are required."}), 400
 
     try:
         conn = get_db_connection()
@@ -697,10 +702,10 @@ def update_client_property(record_id):
         "record": record
     }), 200
 
+
 @app.route("/dashboard")
 @requires_auth
 def dashboard():
-
     conn = get_db_connection()
     cur = conn.cursor()
 
@@ -734,13 +739,12 @@ def dashboard():
     activity_rows = ""
 
     for r in recent_requests:
-        resident_name = r[1]
-        property_name = r[2]
-        building = (r[3] or "").strip()
-        unit = (r[4] or "").strip()
-        issue = r[5]
-        status = r[6]
-        submitted_at = r[7]
+        resident_name = r[0]
+        property_name = r[1]
+        building = (r[2] or "").strip()
+        unit = (r[3] or "").strip()
+        issue = r[4]
+        submitted_at = r[5]
 
         if building and unit:
             property_display = f"{property_name} • Building {building} • Unit {unit}"
@@ -751,12 +755,6 @@ def dashboard():
         else:
             property_display = property_name or "-"
 
-        status_label = {
-            "new": "New",
-            "in_progress": "In Progress",
-            "complete": "Complete"
-        }.get(status, "Unknown")
-
         activity_rows += f"""
             <tr>
                 <td>{submitted_at}</td>
@@ -764,7 +762,7 @@ def dashboard():
                 <td>{resident_name}</td>
                 <td>{property_display}</td>
                 <td>{issue}</td>
-                <td>{status_label}</td>      
+                <td>Logged</td>
             </tr>
         """
 
@@ -984,7 +982,7 @@ def dashboard():
                             <th>Client</th>
                             <th>Property</th>
                             <th>Issue</th>
-                            <th>STATUS</th>  
+                            <th>Result</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -997,7 +995,7 @@ def dashboard():
      """
 
     html += """
-                    
+
        </div>
     </body>
     </html>
