@@ -275,6 +275,14 @@ Message: {message}
         }
 
 
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({
+        "service": "northstar-sms-api",
+        "status": "healthy"
+    }), 200
+
+
 @app.route("/sms", methods=["POST"])
 def sms_handler():
     from_number = request.form.get("From", "").strip()
