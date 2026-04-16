@@ -438,6 +438,9 @@ def maintenance_request():
     unit = str(data.get("unit", "")).strip()
     issue = str(data.get("issue", "")).strip()
 
+    building_normalized = normalize_building_code(building)
+    unit_normalized = normalize_unit_code(unit)
+
     if not name or not phone or not building or not unit or not issue:
         return jsonify({"error": "Name, phone, building, unit, and issue are required."}), 400
 
@@ -446,11 +449,11 @@ def maintenance_request():
         cur = conn.cursor()
 
         cur.execute("""
-                SELECT id, property_id
-                FROM buildings
-                WHERE building_code = %s
-                LIMIT 1
-            """, (building,))
+            SELECT id, property_id, building_code
+            FROM buildings
+            WHERE building_code_normalized = %s
+            LIMIT 1
+        """, (building_normalized,))
 
         building_row = cur.fetchone()
 
@@ -459,13 +462,15 @@ def maintenance_request():
 
         building_id = building_row[0]
         property_id = building_row[1]
+        matched_building_code = building_row[2]
 
         cur.execute("""
-            SELECT id
+            SELECT id, unit_code
             FROM units
-            WHERE building_id = %s AND unit_code = %s
+            WHERE building_id = %s
+              AND unit_code_normalized = %s
             LIMIT 1
-        """, (building_id, unit))
+        """, (building_id, unit_normalized))
 
         unit_row = cur.fetchone()
 
@@ -473,6 +478,7 @@ def maintenance_request():
             return jsonify({"error": "Invalid unit"}), 400
 
         unit_id = unit_row[0]
+        matched_unit_code = unit_row[1]
 
         cur.execute("""
             SELECT id
@@ -531,8 +537,8 @@ def maintenance_request():
             resident_id,
             name,
             phone,
-            building,
-            unit,
+            matched_building_code,
+            matched_unit_code,
             "web_form",
             issue,
             "new",
