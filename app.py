@@ -439,6 +439,10 @@ def maintenance_request():
     issue = str(data.get("issue", "")).strip()
 
     building_normalized = normalize_building_code(building)
+
+    print(f"RAW building input: '{building}'")
+    print(f"NORMALIZED building: '{building_normalized}'")
+
     unit_normalized = normalize_unit_code(unit)
 
     if not name or not phone or not building or not unit or not issue:
