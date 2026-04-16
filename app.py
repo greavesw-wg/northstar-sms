@@ -17,6 +17,78 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+def normalize_whitespace(value: str) -> str:
+    return re.sub(r"\s+", " ", str(value or "").strip())
+
+
+def normalize_building_code(value: str) -> str:
+    """
+    Canonical multifamily building normalization.
+
+    Examples:
+    - "01" -> "1"
+    - "001" -> "1"
+    - "Building 01" -> "1"
+    - "Bldg 03" -> "3"
+    - "Tower A" -> "TOWERA"
+    - "Bldg-A" -> "A"
+    """
+    value = normalize_whitespace(value).upper()
+
+    # Remove common building words
+    value = re.sub(r"\b(BUILDING|BLDG|BLD|TOWER)\b", "", value, flags=re.IGNORECASE)
+    value = value.strip()
+
+    # Keep only alphanumeric
+    compact = re.sub(r"[^A-Z0-9]", "", value)
+
+    # If purely numeric, strip leading zeros
+    if compact.isdigit():
+        return str(int(compact))
+
+    # If alphanumeric and begins with digits only, preserve alphanumeric structure
+    # but strip leading zeros from the numeric prefix if present.
+    match = re.match(r"^0*([0-9]+)([A-Z]+)?$", compact)
+    if match:
+        number_part = str(int(match.group(1)))
+        suffix = match.group(2) or ""
+        return f"{number_part}{suffix}"
+
+    return compact
+
+def normalize_unit_code(value: str) -> str:
+    """
+    Canonical multifamily unit normalization.
+
+    Examples:
+    - "1a" -> "1A"
+    - "01-1A" -> "11A" if passed whole; not ideal for combined labels
+    - "Unit 1A" -> "1A"
+    - " Apt  203-B " -> "203B"
+    - "#304" -> "304"
+    """
+    value = normalize_whitespace(value).upper()
+
+    # Remove common unit words/symbols
+    value = re.sub(r"\b(APARTMENT|APT|UNIT|STE|SUITE|ROOM|RM)\b", "", value, flags=re.IGNORECASE)
+    value = value.replace("#", "")
+    value = value.strip()
+
+    # Keep only alphanumeric
+    compact = re.sub(r"[^A-Z0-9]", "", value)
+
+    # If numeric only, strip leading zeros
+    if compact.isdigit():
+        return str(int(compact))
+
+    # Strip leading zeros only from numeric prefix
+    match = re.match(r"^0*([0-9]+)([A-Z]+)?$", compact)
+    if match:
+        number_part = str(int(match.group(1)))
+        suffix = match.group(2) or ""
+        return f"{number_part}{suffix}"
+
+    return compact
 
 def check_auth(username, password):
     return username == os.getenv("DASHBOARD_USER") and password == os.getenv("DASHBOARD_PASS")
@@ -66,6 +138,29 @@ def init_db():
     cur.close()
     conn.close()
 
+def backfill_normalized_codes():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT id, building_code FROM buildings")
+    for row_id, code in cur.fetchall():
+        cur.execute("""
+            UPDATE buildings
+            SET building_code_normalized = %s
+            WHERE id = %s
+        """, (normalize_building_code(code), row_id))
+
+    cur.execute("SELECT id, unit_code FROM units")
+    for row_id, code in cur.fetchall():
+        cur.execute("""
+            UPDATE units
+            SET unit_code_normalized = %s
+            WHERE id = %s
+        """, (normalize_unit_code(code), row_id))
+
+    conn.commit()
+    cur.close()
+    conn.close()
 
 init_db()
 
