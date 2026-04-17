@@ -386,9 +386,11 @@ def maintenance_request():
 
         cur.execute("""
             INSERT INTO maintenance_requests_v2 (
+                client_id,
                 property_id,
                 building_id,
                 unit_id,
+                resident_id,
                 resident_name,
                 resident_phone,
                 building_label,
@@ -398,11 +400,14 @@ def maintenance_request():
                 acknowledgment_sent,
                 submitted_at
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+            RETURNING id
         """, (
-            property_id,
-            building_id,
-            unit_id,
+            None,  # client_id
+            property_id,  # None for now
+            building_id,  # None for now
+            unit_id,  # None for now
+            None,  # resident_id
             name,
             phone,
             building,
@@ -412,7 +417,10 @@ def maintenance_request():
             False
         ))
 
+        request_row = cur.fetchone()
+        request_id = request_row[0]
         conn.commit()
+
         sms_phone = format_phone(phone)
 
         try:
@@ -421,6 +429,14 @@ def maintenance_request():
                 messaging_service_sid=os.getenv("TWILIO_MESSAGING_SERVICE_SID"),
                 to=sms_phone
             )
+
+            cur.execute("""
+                UPDATE maintenance_requests_v2
+                SET acknowledgment_sent = %s
+                WHERE id = %s
+            """, (True, request_id))
+            conn.commit()
+            
             print(
                 f"SMS queued. SID={message.sid}, status={message.status}, to={sms_phone}, from={os.getenv('TWILIO_PHONE_NUMBER')}")
         except Exception as sms_error:
