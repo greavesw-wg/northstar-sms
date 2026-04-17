@@ -331,8 +331,8 @@ def maintenance_request():
 
     name = str(data.get("name", "")).strip()
     phone = clean_phone(data.get("phone", ""))
-    building = str(data.get("building", "")).strip()
-    unit = str(data.get("unit", "")).strip()
+    building = " ".join(str(data.get("building", "")).split()).strip()
+    unit = " ".join(str(data.get("unit", "")).split()).strip()
     issue = str(data.get("issue", "")).strip()
 
     if not name or not phone or not building or not unit or not issue:
@@ -342,34 +342,15 @@ def maintenance_request():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        cur.execute("""
-                SELECT id, property_id
-                FROM buildings
-                WHERE building_code = %s
-                LIMIT 1
-            """, (building,))
+        # For now, defer strict building/unit matching until
+        # specific client/community templates are built.
+        # Accept and store building/unit exactly as submitted.
 
-        building_row = cur.fetchone()
-
-        if not building_row:
-            return jsonify({"error": "Invalid building"}), 400
-
-        building_id = building_row[0]
-        property_id = building_row[1]
-
-        cur.execute("""
-            SELECT id
-            FROM units
-            WHERE building_id = %s AND unit_code = %s
-            LIMIT 1
-        """, (building_id, unit))
-
-        unit_row = cur.fetchone()
-
-        if not unit_row:
-            return jsonify({"error": "Invalid unit"}), 400
-
-        unit_id = unit_row[0]
+        property_id = None
+        building_id = None
+        unit_id = None
+        building_label = building
+        unit_label = unit
 
         cur.execute("""
             SELECT id
@@ -405,32 +386,27 @@ def maintenance_request():
 
         cur.execute("""
             INSERT INTO maintenance_requests_v2 (
-                client_id,
                 property_id,
                 building_id,
                 unit_id,
-                resident_id,
                 resident_name,
                 resident_phone,
                 building_label,
                 unit_label,
-                channel,
                 issue_description,
                 status,
-                acknowledgment_sent
+                acknowledgment_sent,
+                submitted_at
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
         """, (
-            1,
             property_id,
             building_id,
             unit_id,
-            resident_id,
             name,
             phone,
             building,
             unit,
-            "web_form",
             issue,
             "new",
             False
