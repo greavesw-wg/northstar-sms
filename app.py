@@ -342,47 +342,11 @@ def maintenance_request():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # For now, defer strict building/unit matching until
-        # specific client/community templates are built.
-        # Accept and store building/unit exactly as submitted.
-
+        # Defer strict matching until client/community templates exist.
         property_id = None
         building_id = None
         unit_id = None
-        building_label = building
-        unit_label = unit
-
-        cur.execute("""
-            SELECT id
-            FROM residents
-            WHERE phone = %s
-            LIMIT 1
-        """, (phone,))
-
-        resident_row = cur.fetchone()
-
-        if resident_row:
-            resident_id = resident_row[0]
-        else:
-            full_name_parts = name.split(" ", 1)
-            first_name = full_name_parts[0]
-            last_name = full_name_parts[1] if len(full_name_parts) > 1 else ""
-
-            cur.execute("""
-                INSERT INTO residents (
-                    unit_id,
-                    first_name,
-                    last_name,
-                    full_name,
-                    phone,
-                    sms_opt_in,
-                    status
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                RETURNING id
-            """, (unit_id, first_name, last_name, name, phone, True, "active"))
-
-            resident_id = cur.fetchone()[0]
+        resident_id = None
 
         cur.execute("""
             INSERT INTO maintenance_requests_v2 (
@@ -403,11 +367,11 @@ def maintenance_request():
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
             RETURNING id
         """, (
-            None,  # client_id
-            property_id,  # None for now
-            building_id,  # None for now
-            unit_id,  # None for now
-            None,  # resident_id
+            None,          # client_id
+            property_id,
+            building_id,
+            unit_id,
+            resident_id,
             name,
             phone,
             building,
@@ -436,9 +400,11 @@ def maintenance_request():
                 WHERE id = %s
             """, (True, request_id))
             conn.commit()
-            
+
             print(
-                f"SMS queued. SID={message.sid}, status={message.status}, to={sms_phone}, from={os.getenv('TWILIO_PHONE_NUMBER')}")
+                f"SMS queued. SID={message.sid}, status={message.status}, to={sms_phone}, from={os.getenv('TWILIO_PHONE_NUMBER')}"
+            )
+
         except Exception as sms_error:
             print(f"SMS ERROR sending to {sms_phone}: {sms_error}")
 
@@ -451,13 +417,9 @@ def maintenance_request():
         }), 200
 
     except Exception as e:
-        print("DATABASE ERROR:", e)
-        return jsonify({
-            "success": False,
-            "error": "Database insert failed"
-        }), 500
-
-
+        print("DATABASE ERROR:", repr(e))
+        return jsonify({"error": f"Database insert failed: {str(e)}"}), 500
+    
 @app.route("/contact", methods=["POST"])
 def contact():
     data = request.get_json(silent=True) or {}
