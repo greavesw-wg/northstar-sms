@@ -349,25 +349,29 @@ def maintenance_request():
         resident_id = None
 
         cur.execute("""
-            INSERT INTO maintenance_requests_v2 (
-                client_id,
-                property_id,
-                building_id,
-                unit_id,
-                resident_id,
-                resident_name,
-                resident_phone,
-                building_label,
-                unit_label,
-                issue_description,
-                status,
-                acknowledgment_sent,
-                submitted_at
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
-            RETURNING id
+        INSERT INTO maintenance_requests_v2 (
+            client_id,
+            property_id,
+            building_id,
+            unit_id,
+            resident_id,
+            resident_name,
+            resident_phone,
+            building_label,
+            unit_label,
+            issue_description,
+            status,
+            acknowledgment_sent,
+            acknowledgment_status,
+            source_channel,
+            routing_status,
+            dashboard_status,
+            submitted_at
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+        RETURNING id
         """, (
-            None,          # client_id
+            None,  # client_id
             property_id,
             building_id,
             unit_id,
@@ -378,7 +382,11 @@ def maintenance_request():
             unit,
             issue,
             "new",
-            False
+            False,  # acknowledgment_sent
+            "not_sent",  # acknowledgment_status
+            "web_form",  # source_channel
+            "pending",  # routing_status
+            "visible"  # dashboard_status
         ))
 
         request_row = cur.fetchone()
@@ -394,18 +402,45 @@ def maintenance_request():
                 to=sms_phone
             )
 
+            print("TWILIO RAW RESPONSE:", message)
+            print("TWILIO SID:", getattr(message, "sid", None))
+            print("TWILIO STATUS:", getattr(message, "status", None))
+
             cur.execute("""
                 UPDATE maintenance_requests_v2
-                SET acknowledgment_sent = %s
+                SET acknowledgment_sent = %s,
+                    acknowledgment_status = %s,
+                    acknowledgment_sid = %s,
+                    acknowledgment_error = NULL,
+                    acknowledgment_sent_at = NOW()
                 WHERE id = %s
-            """, (True, request_id))
+            """, (
+                True,
+                str(message.status),  # queued / accepted / sent
+                message.sid,
+                request_id
+            ))
             conn.commit()
 
             print(
-                f"SMS queued. SID={message.sid}, status={message.status}, to={sms_phone}, from={os.getenv('TWILIO_PHONE_NUMBER')}"
+                f"SMS queued. SID={message.sid}, status={message.status}, to={sms_phone}"
             )
 
         except Exception as sms_error:
+            cur.execute("""
+                UPDATE maintenance_requests_v2
+                SET acknowledgment_sent = %s,
+                    acknowledgment_status = %s,
+                    acknowledgment_error = %s
+                WHERE id = %s
+            """, (
+                False,
+                "failed",
+                str(sms_error),
+                request_id
+            ))
+            conn.commit()
+
             print(f"SMS ERROR sending to {sms_phone}: {sms_error}")
 
         cur.close()
