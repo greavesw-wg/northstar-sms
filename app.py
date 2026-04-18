@@ -893,6 +893,13 @@ def dashboard():
                 line-height: 1.2;
             }}
 
+            .ops-table td.issue-cell {
+                white-space: normal;
+                overflow-wrap: break-word;
+                word-break: break-word;
+                max-width: 420px;
+            }
+            
             .ops-table th {{
                 font-size: 11px;
             }}       
