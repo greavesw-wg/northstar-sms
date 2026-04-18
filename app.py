@@ -705,17 +705,19 @@ def dashboard():
     cur.execute("""
         SELECT
             mr.resident_name,
-            p.property_name,
+            COALESCE(p.property_name, 'Unassigned Community') AS property_name,
             mr.building_label,
             mr.unit_label,
             mr.issue_description,
             mr.status,
             mr.submitted_at
         FROM maintenance_requests_v2 mr
-        JOIN properties p ON mr.property_id = p.id
+        LEFT JOIN properties p ON mr.property_id = p.id
+        WHERE COALESCE(mr.dashboard_status, 'visible') = 'visible'
         ORDER BY mr.submitted_at DESC
         LIMIT 5
     """)
+
     recent_requests = cur.fetchall()
 
     cur.close()
@@ -744,7 +746,7 @@ def dashboard():
         elif unit:
             property_display = f"{property_name} • Unit {unit}"
         else:
-            property_display = property_name or "-"
+            property_display = (property_name or "Unassigned Community").strip()
 
 
         status_label = {
