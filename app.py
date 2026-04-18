@@ -761,7 +761,7 @@ def dashboard():
                 <td>Maintenance Request</td>
                 <td>{resident_name}</td>
                 <td>{property_display}</td>
-                <td>{issue}</td>
+                <td class="issue-cell">{issue}</td>
                 <td>{status_label}</td>   
             </tr>
         """
@@ -892,6 +892,13 @@ def dashboard():
                 vertical-align: top;
                 line-height: 1.2;
             }}
+                
+            .ops-table td.issue-cell {{
+                white-space: normal;
+                overflow-wrap: anywhere;
+                word-break: break-word;
+                max-width: 420px;
+            }} 
                       
             .ops-table th {{
                 font-size: 11px;
