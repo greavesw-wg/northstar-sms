@@ -784,7 +784,7 @@ def dashboard():
                 font-family: Arial, sans-serif;
                 background: #0b1220;
                 color: #e5e7eb;
-                overflow: hidden;
+                overflow: auto;
 }}
             .wrap {{
                 padding: 24px;
@@ -831,85 +831,8 @@ def dashboard():
                 box-shadow: 0 4px 14px rgba(0,0,0,0.25);
                 margin-bottom: 16px;  /* tighter spacing between panels */
             }}
-    
-            .badge {{
-                display: inline-block;
-                padding: 4px 10px;
-                border-radius: 999px;
-                font-size: 12px;
-                font-weight: 700;
-            }}
-            .enabled {{
-                background: #052e16;
-                color: #86efac;
-                border: 1px solid #166534;
-            }}
-            .disabled {{
-                background: #450a0a;
-                color: #fca5a5;
-                border: 1px solid #991b1b;
-            }}
-            .progress {{
-                background: #3f2f0b;
-                color: #fcd34d;
-                border: 1px solid #a16207;
-            }}
-            button {{
-                background: #1d4ed8;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 8px 12px;
-                cursor: pointer;
-                font-weight: 600;
-            }}
-            button.off {{
-                background: #b91c1c;
-            }}
-            button:hover {{
-                opacity: 0.92;
-            }}
-            .status-row {{
-                display: flex;
-                gap: 20px;
-                flex-wrap: wrap;
-            }}
-            .status-item strong {{
-                display: block;
-                margin-bottom: 6px;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="wrap">
-            <div class="title">North Star Command</div>
-            <div class="subtitle">Operational control center for client/property service management</div>
-            <div class="panel">
-                <h3 style="margin-top:0;">System Status</h3>
-                <div class="status-row">                
-                    <div class="status-item">
-                        <strong>AI Engine</strong>
-                        <span class="badge enabled">Online</span>
-                    </div>
-                    <div class="status-item">
-                        <strong>Lead Processor</strong>
-                        <span class="badge enabled">Running</span>
-                    </div>
-                    <div class="status-item">
-                        <strong>Activity Logger</strong>
-                        <span class="badge enabled">Active</span>
-                    </div>
-                    <div class="status-item">
-                        <strong>Data Store</strong>
-                        <span class="badge enabled">Healthy</span>
-                    </div>
-                </div>
-            </div>
 
-            <div class="panel">
-                <h3 style="margin-top:0;">Recent Activity</h3>
-                
-                <div class="table-container">
+    <div class="table-container">
         <table class="ops-table">    
             table {{
                 max-height: 500px;
@@ -986,7 +909,84 @@ def dashboard():
             }}       
         </table>
     </div>
-                
+
+            .badge {{
+                display: inline-block;
+                padding: 4px 10px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 700;
+            }}
+            .enabled {{
+                background: #052e16;
+                color: #86efac;
+                border: 1px solid #166534;
+            }}
+            .disabled {{
+                background: #450a0a;
+                color: #fca5a5;
+                border: 1px solid #991b1b;
+            }}
+            .progress {{
+                background: #3f2f0b;
+                color: #fcd34d;
+                border: 1px solid #a16207;
+            }}
+            button {{
+                background: #1d4ed8;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 8px 12px;
+                cursor: pointer;
+                font-weight: 600;
+            }}
+            button.off {{
+                background: #b91c1c;
+            }}
+            button:hover {{
+                opacity: 0.92;
+            }}
+            .status-row {{
+                display: flex;
+                gap: 20px;
+                flex-wrap: wrap;
+            }}
+            .status-item strong {{
+                display: block;
+                margin-bottom: 6px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="wrap">
+            <div class="title">North Star Command</div>
+            <div class="subtitle">Operational control center for client/property service management</div>
+
+            <div class="panel">
+                <h3 style="margin-top:0;">System Status</h3>
+                <div class="status-row">
+                    <div class="status-item">
+                        <strong>AI Engine</strong>
+                        <span class="badge enabled">Online</span>
+                    </div>
+                    <div class="status-item">
+                        <strong>Lead Processor</strong>
+                        <span class="badge enabled">Running</span>
+                    </div>
+                    <div class="status-item">
+                        <strong>Activity Logger</strong>
+                        <span class="badge enabled">Active</span>
+                    </div>
+                    <div class="status-item">
+                        <strong>Data Store</strong>
+                        <span class="badge enabled">Healthy</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3 style="margin-top:0;">Recent Activity</h3>
                 <table>
                     <thead>
                         <tr>
