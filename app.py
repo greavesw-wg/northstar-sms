@@ -729,18 +729,35 @@ def dashboard():
     disabled_clients = 0
     total_units = 0
 
+    from datetime import datetime
+
+    def generate_ticket_number(ticket_id, submitted_at):
+        if isinstance(submitted_at, str):
+            try:
+                dt = datetime.fromisoformat(submitted_at.replace("Z", ""))
+            except Exception:
+                dt = datetime.utcnow()
+        else:
+            dt = submitted_at
+
+        return f"NS-{dt.strftime('%Y%m%d')}-{int(ticket_id):06d}"
+
     activity_rows = ""
 
     for r in recent_requests:
-        resident_name = r[0]
-        property_name = r[1]
-        building = (r[2] or "").strip()
-        unit = (r[3] or "").strip()
-        issue = r[4]
-        status = r[5]
-        submitted_at = r[6]
+        ticket_id = r[0]
+        resident_name = r[1]
+        property_name = r[2]
+        building = (r[3] or "").strip()
+        unit = (r[4] or "").strip()
+        issue = r[5]
+        status = r[6]
+        submitted_at = r[7]
 
-        if building and unit:
+        # ✅ ADD THIS LINE RIGHT HERE
+        ticket_number = generate_ticket_number(ticket_id, submitted_at)
+
+       if building and unit:
             property_display = f"{property_name} • Building {building} • Unit {unit}"
         elif building:
             property_display = f"{property_name} • Building {building}"
@@ -755,16 +772,32 @@ def dashboard():
             "complete": "Complete"
         }.get(status, "Unknown")
 
-        activity_rows += f"""
-            <tr>
-                <td><span style="color:#94a3b8;">{submitted_at}</span></td>
-                <td>Maintenance Request</td>
-                <td>{resident_name}</td>
-                <td class="property-cell">{property_display}</td>
-                <td class="issue-cell">{issue}</td>
-                <td class="status-cell">{status_label}</td>    
-            </tr>
-        """
+    activity_rows += f"""
+    <tr
+        data-ticket-id="{id_safe}"
+        data-ticket-number="{ticket_number_safe}"
+        data-submitted-at="{submitted_at_safe}"
+        data-event="Maintenance Request"
+        data-resident-name="{resident_name_safe}"
+        data-property-display="{property_display_safe}"
+        data-issue="{issue_safe}"
+        data-status="{status_label_safe}"
+        onclick="openTicketModal(this)"
+    >
+        <td>{ticket_number_safe}</td>   <!-- ✅ THIS is the key addition -->
+        <td>{submitted_at_safe}</td>
+        <td>Maintenance Request</td>
+        <td>{resident_name_safe}</td>
+        <td class="property-cell">{property_display_safe}</td>
+        <td class="issue-cell">{issue_safe}</td>
+        <td class="status-cell">{format_status_badge(status_label_safe)}</td>
+        <td>
+            <button class="delete-btn" onclick="deleteTicket(event, '{id_safe}', '{ticket_number_safe}')">
+                Delete
+            </button>
+        </td>
+    </tr>
+    """
 
     if not activity_rows:
         activity_rows = """
@@ -985,13 +1018,15 @@ def dashboard():
                 <table class="ops-table">
                     <thead>
                         <tr>
-                           <th>Time</th>
-                           <th>Event</th>
-                           <th>Client</th>
-                           <th>Property</th>
-                           <th>Issue</th>
-                           <th>Status</th>
-                         </tr>
+                            <th>Ticket #</th>
+                            <th>Time</th>
+                            <th>Event</th>
+                            <th>Client</th>
+                            <th>Property</th>
+                            <th>Issue</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
                     </thead>
                     <tbody>
             
@@ -1011,9 +1046,7 @@ def dashboard():
     </body>
     </html>
     """
-
     return html
-
 
 @app.route("/toggle-service/<record_id>", methods=["POST"])
 def toggle_service(record_id):
