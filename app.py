@@ -779,16 +779,27 @@ def dashboard():
     <head>
         <title>North Star Command</title>
         <style>
-            body {{
-                margin: 0;
-                font-family: Arial, sans-serif;
-                background: #0b1220;
-                color: #e5e7eb;
-                overflow: auto;
-}}
-            .wrap {{
-                padding: 24px;
-            }}
+            
+        html, body {{
+             height: 100%;
+             margin: 0;
+        }}
+        body {{
+            font-family: Arial, sans-serif;
+            background: #0b1220;
+            color: #e5e7eb;
+            overflow: hidden;
+        }}
+            
+        .wrap {{
+            height: 100vh;
+            padding: 24px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }}
+            
             .title {{
                 font-size: 24px;
                 font-weight: 700;
@@ -823,68 +834,36 @@ def dashboard():
                 font-size: 18px;
                 font-weight: 700;
             }}
+            
             .panel {{
                 background: #111827;
                 border: 1px solid #1f2937;
                 border-radius: 12px;
-                padding: 12px 16px;   /* tighter */
+                padding: 12px 16px;
                 box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-                margin-bottom: 16px;  /* tighter spacing between panels */
+            }}   
+
+            .panel.activity-panel {{
+                flex: 1 1 auto;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
             }}
 
-    <div class="table-container">
-        <table class="ops-table">    
-            table {{
-                max-height: 500px;
+            .table-container {{
+                flex: 1 1 auto;
+                min-height: 0;
                 overflow-y: auto;
                 overflow-x: auto;
                 border: 1px solid #1f2937;
-                border-radius: 8px;                
-            }}
-            th, td {{
-                padding: 12px 10px;
-                border-bottom: 1px solid #1f2937;
-                text-align: left;
-                font-size: 14px;
-                vertical-align: top;
-            }}
-            th {{
-                color: #93c5fd;
-                text-transform: uppercase;
-                font-size: 12px;
-                letter-spacing: 0.05em;
+                border-radius: 8px;
             }}
 
             .ops-table {{
-                min-width: 1000px;
+                min-width: 1200px;
                 width: max-content;
-                border-collapse: collapse;           
-
-            }}
-
-            .ops-table thead {{
-                display: table;
-                width: 100%;
-                table-layout: fixed;
-            }}
-
-            .ops-table thead th {{
-                position: sticky;
-                top: 0;
-                background: #111827;
-                z-index: 2;
-            }}
-
-            .ops-table tbody {{
-                display: block;
-                max-height: 500px;   /* or 70vh */
-                overflow-y: auto;
-            }}
-
-            .ops-table tbody tr {{
-                display: table;
-                width: 100%;
-                table-layout: fixed;
+                border-collapse: collapse;
             }}
 
             .ops-table th,
@@ -895,6 +874,18 @@ def dashboard():
                 font-size: 12px;
                 vertical-align: top;
                 line-height: 1.2;
+                white-space: nowrap;
+            }}
+
+            .ops-table th {{
+                position: sticky;
+                top: 0;
+                background: #111827;
+                z-index: 2;
+                color: #93c5fd;
+                text-transform: uppercase;
+                font-size: 11px;
+                letter-spacing: 0.05em;
             }}
 
             .ops-table td.issue-cell {{
@@ -902,14 +893,17 @@ def dashboard():
                 overflow-wrap: anywhere;
                 word-break: break-word;
                 max-width: 420px;
-            }} 
+            }}
 
-            .ops-table th {{
-                font-size: 11px;
-            }}       
-        </table>
-    </div>
+            .ops-table td.property-cell {{
+                white-space: normal;
+                min-width: 170px;
+            }}
 
+            .ops-table td.status-cell {{
+                min-width: 100px;
+            }}
+                        
             .badge {{
                 display: inline-block;
                 padding: 4px 10px;
@@ -958,52 +952,59 @@ def dashboard():
             }}
         </style>
     </head>
-    
     <body>
-  <div class="dashboard-shell">
-    <header class="top-header">
-      <h1>North Star Command</h1>
-      <p>Operational control center for client/property service management</p>
-    </header>
+        <div class="wrap">
+            <div class="title">North Star Command</div>
+            <div class="subtitle">Operational control center for client/property service management</div>
 
-    <section class="system-status-card">
-      <!-- status content -->
-    </section>
+            <div class="panel">
+                <h3 style="margin-top:0;">System Status</h3>
+                <div class="status-row">
+                    <div class="status-item">
+                        <strong>AI Engine</strong>
+                        <span class="badge enabled">Online</span>
+                    </div>
+                    <div class="status-item">
+                        <strong>Lead Processor</strong>
+                        <span class="badge enabled">Running</span>
+                    </div>
+                    <div class="status-item">
+                        <strong>Activity Logger</strong>
+                        <span class="badge enabled">Active</span>
+                    </div>
+                    <div class="status-item">
+                        <strong>Data Store</strong>
+                        <span class="badge enabled">Healthy</span>
+                    </div>
+                </div>
+            </div>
 
-    <section class="activity-card">
-      <div class="activity-card-header">
-        <h2>Recent Activity</h2>
-      </div>
-
-      <div class="activity-scroll-region">
-        <table class="activity-table">
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Event</th>
-              <th>Client</th>
-              <th>Property</th>
-              <th>Issue</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Neon rows here -->
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </div>
-</body>
-    
+        <div class="panel activity-panel">
+            <h3 style="margin-top:0;">Recent Activity</h3>
+            <div class="table-container">
+                <table class="ops-table">
+                    <thead>
+                        <tr>
+                           <th>Time</th>
+                           <th>Event</th>
+                           <th>Client</th>
+                           <th>Property</th>
+                           <th>Issue</th>
+                           <th>Status</th>
+                         </tr>
+                    </thead>
+                    <tbody>
+            
     """
     html += activity_rows
     html += f"""
-    </tbody>
-                </table>
-            </div>
-     """
-
+    
+             </tbody>
+           </table>
+        </div>
+    </div>
+    
+    """
     html += """
 
        </div>
