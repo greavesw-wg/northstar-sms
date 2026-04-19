@@ -958,47 +958,44 @@ def dashboard():
             }}
         </style>
     </head>
+    
     <body>
-        <div class="wrap">
-            <div class="title">North Star Command</div>
-            <div class="subtitle">Operational control center for client/property service management</div>
+  <div class="dashboard-shell">
+    <header class="top-header">
+      <h1>North Star Command</h1>
+      <p>Operational control center for client/property service management</p>
+    </header>
 
-            <div class="panel">
-                <h3 style="margin-top:0;">System Status</h3>
-                <div class="status-row">
-                    <div class="status-item">
-                        <strong>AI Engine</strong>
-                        <span class="badge enabled">Online</span>
-                    </div>
-                    <div class="status-item">
-                        <strong>Lead Processor</strong>
-                        <span class="badge enabled">Running</span>
-                    </div>
-                    <div class="status-item">
-                        <strong>Activity Logger</strong>
-                        <span class="badge enabled">Active</span>
-                    </div>
-                    <div class="status-item">
-                        <strong>Data Store</strong>
-                        <span class="badge enabled">Healthy</span>
-                    </div>
-                </div>
-            </div>
+    <section class="system-status-card">
+      <!-- status content -->
+    </section>
 
-            <div class="panel">
-                <h3 style="margin-top:0;">Recent Activity</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Time</th>
-                            <th>Event</th>
-                            <th>Client</th>
-                            <th>Property</th>
-                            <th>Issue</th>
-                            <th>STATUS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+    <section class="activity-card">
+      <div class="activity-card-header">
+        <h2>Recent Activity</h2>
+      </div>
+
+      <div class="activity-scroll-region">
+        <table class="activity-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Event</th>
+              <th>Client</th>
+              <th>Property</th>
+              <th>Issue</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Neon rows here -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</body>
+    
     """
     html += activity_rows
     html += f"""
