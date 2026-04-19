@@ -454,7 +454,8 @@ def maintenance_request():
     except Exception as e:
         print("DATABASE ERROR:", repr(e))
         return jsonify({"error": f"Database insert failed: {str(e)}"}), 500
-    
+
+
 @app.route("/contact", methods=["POST"])
 def contact():
     data = request.get_json(silent=True) or {}
@@ -748,7 +749,6 @@ def dashboard():
         else:
             property_display = (property_name or "Unassigned Community").strip()
 
-
         status_label = {
             "new": "New",
             "in_progress": "In Progress",
@@ -784,10 +784,8 @@ def dashboard():
                 font-family: Arial, sans-serif;
                 background: #0b1220;
                 color: #e5e7eb;
-                overflow: hidden;            
-                
-            }}
-            
+                overflow: hidden;
+}}
             .wrap {{
                 padding: 24px;
             }}
@@ -833,85 +831,7 @@ def dashboard():
                 box-shadow: 0 4px 14px rgba(0,0,0,0.25);
                 margin-bottom: 16px;  /* tighter spacing between panels */
             }}
-
-    <div class="table-container">
-        <table class="ops-table">    
-            table {{
-                max-height: 500px;
-                overflow-y: auto;
-                overflow-x: auto;
-                border: 1px solid #1f2937;
-                border-radius: 8px;                
-            }}
-            th, td {{
-                padding: 12px 10px;
-                border-bottom: 1px solid #1f2937;
-                text-align: left;
-                font-size: 14px;
-                vertical-align: top;
-            }}
-            th {{
-                color: #93c5fd;
-                text-transform: uppercase;
-                font-size: 12px;
-                letter-spacing: 0.05em;
-            }}
-
-            .ops-table {{
-                min-width: 1000px;
-                width: max-content;
-                border-collapse: collapse;           
-                
-            }}
-
-            .ops-table thead {{
-                display: table;
-                width: 100%;
-                table-layout: fixed;
-            }}
-
-            .ops-table thead th {{
-                position: sticky;
-                top: 0;
-                background: #111827;
-                z-index: 2;
-            }}
-
-            .ops-table tbody {{
-                display: block;
-                max-height: 500px;   /* or 70vh */
-                overflow-y: auto;
-            }}
-
-            .ops-table tbody tr {{
-                display: table;
-                width: 100%;
-                table-layout: fixed;
-            }}
-            
-            .ops-table th,
-            .ops-table td {{
-                padding: 8px 8px;
-                border-bottom: 1px solid #1f2937;
-                text-align: left;
-                font-size: 12px;
-                vertical-align: top;
-                line-height: 1.2;
-            }}
-                
-            .ops-table td.issue-cell {{
-                white-space: normal;
-                overflow-wrap: anywhere;
-                word-break: break-word;
-                max-width: 420px;
-            }} 
-                      
-            .ops-table th {{
-                font-size: 11px;
-            }}       
-        </table>
-    </div>
-
+    
             .badge {{
                 display: inline-block;
                 padding: 4px 10px;
@@ -964,10 +884,9 @@ def dashboard():
         <div class="wrap">
             <div class="title">North Star Command</div>
             <div class="subtitle">Operational control center for client/property service management</div>
-
             <div class="panel">
                 <h3 style="margin-top:0;">System Status</h3>
-                <div class="status-row">
+                <div class="status-row">                
                     <div class="status-item">
                         <strong>AI Engine</strong>
                         <span class="badge enabled">Online</span>
@@ -989,6 +908,85 @@ def dashboard():
 
             <div class="panel">
                 <h3 style="margin-top:0;">Recent Activity</h3>
+                
+                <div class="table-container">
+        <table class="ops-table">    
+            table {{
+                max-height: 500px;
+                overflow-y: auto;
+                overflow-x: auto;
+                border: 1px solid #1f2937;
+                border-radius: 8px;                
+            }}
+            th, td {{
+                padding: 12px 10px;
+                border-bottom: 1px solid #1f2937;
+                text-align: left;
+                font-size: 14px;
+                vertical-align: top;
+            }}
+            th {{
+                color: #93c5fd;
+                text-transform: uppercase;
+                font-size: 12px;
+                letter-spacing: 0.05em;
+            }}
+
+            .ops-table {{
+                min-width: 1000px;
+                width: max-content;
+                border-collapse: collapse;           
+
+            }}
+
+            .ops-table thead {{
+                display: table;
+                width: 100%;
+                table-layout: fixed;
+            }}
+
+            .ops-table thead th {{
+                position: sticky;
+                top: 0;
+                background: #111827;
+                z-index: 2;
+            }}
+
+            .ops-table tbody {{
+                display: block;
+                max-height: 500px;   /* or 70vh */
+                overflow-y: auto;
+            }}
+
+            .ops-table tbody tr {{
+                display: table;
+                width: 100%;
+                table-layout: fixed;
+            }}
+
+            .ops-table th,
+            .ops-table td {{
+                padding: 8px 8px;
+                border-bottom: 1px solid #1f2937;
+                text-align: left;
+                font-size: 12px;
+                vertical-align: top;
+                line-height: 1.2;
+            }}
+
+            .ops-table td.issue-cell {{
+                white-space: normal;
+                overflow-wrap: anywhere;
+                word-break: break-word;
+                max-width: 420px;
+            }} 
+
+            .ops-table th {{
+                font-size: 11px;
+            }}       
+        </table>
+    </div>
+                
                 <table>
                     <thead>
                         <tr>
