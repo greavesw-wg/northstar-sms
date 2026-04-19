@@ -757,12 +757,12 @@ def dashboard():
 
         activity_rows += f"""
             <tr>
-                <td>{submitted_at}</td>
+                <td><span style="color:#94a3b8;">{submitted_at}</span></td>
                 <td>Maintenance Request</td>
                 <td>{resident_name}</td>
-                <td>{property_display}</td>
+                <td class="property-cell">{property_display}</td>
                 <td class="issue-cell">{issue}</td>
-                <td>{status_label}</td>   
+                <td class="status-cell">{status_label}</td>    
             </tr>
         """
 
