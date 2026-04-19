@@ -754,10 +754,9 @@ def dashboard():
         status = r[6]
         submitted_at = r[7]
 
-        # ✅ ADD THIS LINE RIGHT HERE
         ticket_number = generate_ticket_number(ticket_id, submitted_at)
 
-       if building and unit:
+        if building and unit:
             property_display = f"{property_name} • Building {building} • Unit {unit}"
         elif building:
             property_display = f"{property_name} • Building {building}"
@@ -766,7 +765,7 @@ def dashboard():
         else:
             property_display = (property_name or "Unassigned Community").strip()
 
-        status_label = {
+            status_label = {
             "new": "New",
             "in_progress": "In Progress",
             "complete": "Complete"
