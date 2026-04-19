@@ -784,7 +784,7 @@ def dashboard():
                 font-family: Arial, sans-serif;
                 background: #0b1220;
                 color: #e5e7eb;
-                overflow: hidden;
+                overflow: auto;
 }}
             .wrap {{
                 padding: 24px;
@@ -832,10 +832,14 @@ def dashboard():
                 margin-bottom: 16px;  /* tighter spacing between panels */
             }}
 
+    <div class="table-container">
+        <table class="ops-table">    
             table {{
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 8px;
+                max-height: 500px;
+                overflow-y: auto;
+                overflow-x: auto;
+                border: 1px solid #1f2937;
+                border-radius: 8px;                
             }}
             th, td {{
                 padding: 12px 10px;
@@ -852,9 +856,10 @@ def dashboard():
             }}
 
             .ops-table {{
-                width: 100%;
-                border-collapse: collapse;
-                table-layout: fixed;
+                min-width: 1000px;
+                width: max-content;
+                border-collapse: collapse;           
+                
             }}
 
             .ops-table thead {{
@@ -881,7 +886,7 @@ def dashboard():
                 width: 100%;
                 table-layout: fixed;
             }}
-
+            
             .ops-table th,
             .ops-table td {{
                 padding: 8px 8px;
@@ -902,6 +907,8 @@ def dashboard():
             .ops-table th {{
                 font-size: 11px;
             }}       
+        </table>
+    </div>
 
             .badge {{
                 display: inline-block;
