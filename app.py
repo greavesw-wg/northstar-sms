@@ -784,8 +784,10 @@ def dashboard():
                 font-family: Arial, sans-serif;
                 background: #0b1220;
                 color: #e5e7eb;
-                overflow: auto;
-}}
+                overflow: hidden;            
+                
+            }}
+            
             .wrap {{
                 padding: 24px;
             }}
