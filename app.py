@@ -715,7 +715,7 @@ def dashboard():
         LEFT JOIN properties p ON mr.property_id = p.id
         WHERE COALESCE(mr.dashboard_status, 'visible') = 'visible'
         ORDER BY mr.submitted_at DESC
-        LIMIT 5
+        LIMIT 100
     """)
 
     recent_requests = cur.fetchall()
@@ -872,9 +872,8 @@ def dashboard():
 
             .ops-table tbody {{
                 display: block;
-                max-height: 120px;
+                max-height: 500px;   /* or 70vh */
                 overflow-y: auto;
-                width: 100%;
             }}
 
             .ops-table tbody tr {{
