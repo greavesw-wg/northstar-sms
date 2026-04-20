@@ -716,7 +716,6 @@ def update_client_property(record_id):
         "record": record
     }), 200
 
-
 @app.route("/dashboard")
 @requires_auth
 def dashboard():
@@ -777,7 +776,7 @@ def dashboard():
         else:
             property_display = (property_name or "Unassigned Community").strip()
 
-            status_label = {
+        status_label = {
             "new": "New",
             "in_progress": "In Progress",
             "complete": "Complete"
@@ -791,50 +790,49 @@ def dashboard():
         issue_safe = html.escape(str(issue), quote=True)
         status_label_safe = html.escape(str(status_label), quote=True)
 
-    activity_rows += f"""
-    <tr
-        data-ticket-id="{id_safe}"
-        data-ticket-number="{ticket_number_safe}"
-        data-submitted-at="{submitted_at_safe}"
-        data-event="Maintenance Request"
-        data-resident-name="{resident_name_safe}"
-        data-property-display="{property_display_safe}"
-        data-issue="{issue_safe}"
-        data-status="{status_label_safe}"
-        onclick="openTicketModal(this)"
-    >
-        <td>{ticket_number_safe}</td>   <!-- ✅ THIS is the key addition -->
-        <td>{submitted_at_safe}</td>
-        <td>Maintenance Request</td>
-        <td>{resident_name_safe}</td>
-        <td class="property-cell">{property_display_safe}</td>
-        <td class="issue-cell">{issue_safe}</td>
-        <td class="status-cell">{format_status_badge(status_label)}</td>
-        <td>
-            <button class="delete-btn" onclick="deleteTicket(event, '{id_safe}', '{ticket_number_safe}')">
-                Delete
-            </button>
-        </td>
-    </tr>
-    """
+        activity_rows += f"""
+        <tr
+            data-ticket-id="{id_safe}"
+            data-ticket-number="{ticket_number_safe}"
+            data-submitted-at="{submitted_at_safe}"
+            data-event="Maintenance Request"
+            data-resident-name="{resident_name_safe}"
+            data-property-display="{property_display_safe}"
+            data-issue="{issue_safe}"
+            data-status="{status_label_safe}"
+            onclick="openTicketModal(this)"
+        >
+            <td>{ticket_number_safe}</td>
+            <td>{submitted_at_safe}</td>
+            <td>Maintenance Request</td>
+            <td>{resident_name_safe}</td>
+            <td class="property-cell">{property_display_safe}</td>
+            <td class="issue-cell">{issue_safe}</td>
+            <td class="status-cell">{format_status_badge(status_label)}</td>
+            <td>
+                <button class="delete-btn" onclick="deleteTicket(event, '{id_safe}', '{ticket_number_safe}')">
+                    Delete
+                </button>
+            </td>
+        </tr>
+        """
 
     if not activity_rows:
         activity_rows = """
             <tr>
-                <td colspan="6">No recent activity yet.</td>
+                <td colspan="8">No recent activity yet.</td>
             </tr>
         """
 
-    page_html = f""" 
+    page_html = f"""
     <!DOCTYPE html>
     <html>
     <head>
         <title>North Star Command</title>
         <style>
-            
         html, body {{
-             height: 100%;
-             margin: 0;
+            height: 100%;
+            margin: 0;
         }}
         body {{
             font-family: Arial, sans-serif;
@@ -842,7 +840,6 @@ def dashboard():
             color: #e5e7eb;
             overflow: hidden;
         }}
-            
         .wrap {{
             height: 100vh;
             padding: 24px;
@@ -851,157 +848,146 @@ def dashboard():
             flex-direction: column;
             gap: 16px;
         }}
-            
-            .title {{
-                font-size: 24px;
-                font-weight: 700;
-                margin-bottom: 6px;
-            }}
-            .subtitle {{
-                color: #94a3b8;
-                margin-bottom: 18px;
-                font-size: 14px;
-            }}
-            .cards {{
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 16px;
-                margin-bottom: 24px;
-            }}
-            .card {{
-                background: #111827;
-                border: 1px solid #1f2937;
-                border-radius: 12px;
-                padding: 18px;
-                box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-            }}
-            .card-label {{
-                font-size: 11px;
-                color: #94a3b8;
-                margin-bottom: 6px;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-            }}
-            .card-value {{
-                font-size: 18px;
-                font-weight: 700;
-            }}
-            
-            .panel {{
-                background: #111827;
-                border: 1px solid #1f2937;
-                border-radius: 12px;
-                padding: 12px 16px;
-                box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-            }}   
-
-            .panel.activity-panel {{
-                flex: 1 1 auto;
-                min-height: 0;
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
-            }}
-
-            .table-container {{
-                flex: 1 1 auto;
-                min-height: 0;
-                overflow-y: auto;
-                overflow-x: auto;
-                border: 1px solid #1f2937;
-                border-radius: 8px;
-            }}
-
-            .ops-table {{
-                min-width: 1200px;
-                width: max-content;
-                border-collapse: collapse;
-            }}
-
-            .ops-table th,
-            .ops-table td {{
-                padding: 8px 8px;
-                border-bottom: 1px solid #1f2937;
-                text-align: left;
-                font-size: 12px;
-                vertical-align: top;
-                line-height: 1.2;
-                white-space: nowrap;
-            }}
-
-            .ops-table th {{
-                position: sticky;
-                top: 0;
-                background: #111827;
-                z-index: 2;
-                color: #93c5fd;
-                text-transform: uppercase;
-                font-size: 11px;
-                letter-spacing: 0.05em;
-            }}
-
-            .ops-table td.issue-cell {{
-                white-space: normal;
-                overflow-wrap: anywhere;
-                word-break: break-word;
-                max-width: 420px;
-            }}
-
-            .ops-table td.property-cell {{
-                white-space: normal;
-                min-width: 170px;
-            }}
-
-            .ops-table td.status-cell {{
-                min-width: 100px;
-            }}
-                        
-            .badge {{
-                display: inline-block;
-                padding: 4px 10px;
-                border-radius: 999px;
-                font-size: 12px;
-                font-weight: 700;
-            }}
-            .enabled {{
-                background: #052e16;
-                color: #86efac;
-                border: 1px solid #166534;
-            }}
-            .disabled {{
-                background: #450a0a;
-                color: #fca5a5;
-                border: 1px solid #991b1b;
-            }}
-            .progress {{
-                background: #3f2f0b;
-                color: #fcd34d;
-                border: 1px solid #a16207;
-            }}
-            button {{
-                background: #1d4ed8;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 8px 12px;
-                cursor: pointer;
-                font-weight: 600;
-            }}
-            button.off {{
-                background: #b91c1c;
-            }}
-            button:hover {{
-                opacity: 0.92;
-            }}
-            .status-row {{
-                display: flex;
-                gap: 20px;
-                flex-wrap: wrap;
-            }}
-            .status-item strong {{
-                display: block;
-                margin-bottom: 6px;
-            }}
+        .title {{
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }}
+        .subtitle {{
+            color: #94a3b8;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }}
+        .cards {{
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }}
+        .card {{
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        }}
+        .card-label {{
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }}
+        .card-value {{
+            font-size: 18px;
+            font-weight: 700;
+        }}
+        .panel {{
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        }}
+        .panel.activity-panel {{
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }}
+        .table-container {{
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: auto;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+        }}
+        .ops-table {{
+            min-width: 1200px;
+            width: max-content;
+            border-collapse: collapse;
+        }}
+        .ops-table th,
+        .ops-table td {{
+            padding: 8px 8px;
+            border-bottom: 1px solid #1f2937;
+            text-align: left;
+            font-size: 12px;
+            vertical-align: top;
+            line-height: 1.2;
+            white-space: nowrap;
+        }}
+        .ops-table th {{
+            position: sticky;
+            top: 0;
+            background: #111827;
+            z-index: 2;
+            color: #93c5fd;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }}
+        .ops-table td.issue-cell {{
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            max-width: 420px;
+        }}
+        .ops-table td.property-cell {{
+            white-space: normal;
+            min-width: 170px;
+        }}
+        .ops-table td.status-cell {{
+            min-width: 100px;
+        }}
+        .badge {{
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }}
+        .enabled {{
+            background: #052e16;
+            color: #86efac;
+            border: 1px solid #166534;
+        }}
+        .disabled {{
+            background: #450a0a;
+            color: #fca5a5;
+            border: 1px solid #991b1b;
+        }}
+        .progress {{
+            background: #3f2f0b;
+            color: #fcd34d;
+            border: 1px solid #a16207;
+        }}
+        button {{
+            background: #1d4ed8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }}
+        button.off {{
+            background: #b91c1c;
+        }}
+        button:hover {{
+            opacity: 0.92;
+        }}
+        .status-row {{
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }}
+        .status-item strong {{
+            display: block;
+            margin-bottom: 6px;
+        }}
         </style>
     </head>
     <body>
@@ -1031,37 +1017,31 @@ def dashboard():
                 </div>
             </div>
 
-        <div class="panel activity-panel">
-            <h3 style="margin-top:0;">Recent Activity</h3>
-            <div class="table-container">
-                <table class="ops-table">
-                    <thead>
-                        <tr>
-                            <th>Ticket #</th>
-                            <th>Time</th>
-                            <th>Event</th>
-                            <th>Client</th>
-                            <th>Property</th>
-                            <th>Issue</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            
+            <div class="panel activity-panel">
+                <h3 style="margin-top:0;">Recent Activity</h3>
+                <div class="table-container">
+                    <table class="ops-table">
+                        <thead>
+                            <tr>
+                                <th>Ticket #</th>
+                                <th>Time</th>
+                                <th>Event</th>
+                                <th>Client</th>
+                                <th>Property</th>
+                                <th>Issue</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
     """
     page_html += activity_rows
-    page_html += f"""
-    
-             </tbody>
-           </table>
-        </div>
-    </div>
-    
-    """
     page_html += """
-
-       </div>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </body>
     </html>
     """
