@@ -825,7 +825,7 @@ def dashboard():
             </tr>
         """
 
-    html = f"""
+    page_html = f""" 
     <!DOCTYPE html>
     <html>
     <head>
@@ -1050,8 +1050,8 @@ def dashboard():
                     <tbody>
             
     """
-    html += activity_rows
-    html += f"""
+    page_html += activity_rows
+    page_html += f"""
     
              </tbody>
            </table>
@@ -1059,13 +1059,13 @@ def dashboard():
     </div>
     
     """
-    html += """
+    page_html += """
 
        </div>
     </body>
     </html>
     """
-    return html
+    return page_html
 
 @app.route("/toggle-service/<record_id>", methods=["POST"])
 def toggle_service(record_id):
