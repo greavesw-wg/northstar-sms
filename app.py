@@ -17,7 +17,6 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-
 def check_auth(username, password):
     return username == os.getenv("DASHBOARD_USER") and password == os.getenv("DASHBOARD_PASS")
 
@@ -66,8 +65,33 @@ def init_db():
     cur.close()
     conn.close()
 
-
 init_db()
+
+def generate_ticket_number(ticket_id, submitted_at):
+    if isinstance(submitted_at, str):
+        try:
+            dt = datetime.fromisoformat(submitted_at.replace("Z", ""))
+        except Exception:
+            dt = datetime.utcnow()
+    else:
+        dt = submitted_at
+
+    return f"NS-{dt.strftime('%Y%m%d')}-{int(ticket_id):06d}"
+
+
+def format_status_badge(status_label):
+    status = (status_label or "").lower()
+
+    if status == "new":
+        cls = "status-new"
+    elif status in ["in progress", "in_progress"]:
+        cls = "status-in-progress"
+    elif status in ["complete", "completed"]:
+        cls = "status-completed"
+    else:
+        cls = "status-other"
+
+    return f'<span class="status-badge {cls}">{status_label}</span>'
 
 twilio_client = Client(
     os.getenv("TWILIO_ACCOUNT_SID"),
@@ -729,19 +753,6 @@ def dashboard():
     disabled_clients = 0
     total_units = 0
 
-    from datetime import datetime
-
-    def generate_ticket_number(ticket_id, submitted_at):
-        if isinstance(submitted_at, str):
-            try:
-                dt = datetime.fromisoformat(submitted_at.replace("Z", ""))
-            except Exception:
-                dt = datetime.utcnow()
-        else:
-            dt = submitted_at
-
-        return f"NS-{dt.strftime('%Y%m%d')}-{int(ticket_id):06d}"
-
     activity_rows = ""
 
     for r in recent_requests:
@@ -771,6 +782,14 @@ def dashboard():
             "complete": "Complete"
         }.get(status, "Unknown")
 
+        id_safe = html.escape(str(ticket_id), quote=True)
+        ticket_number_safe = html.escape(str(ticket_number), quote=True)
+        submitted_at_safe = html.escape(str(submitted_at), quote=True)
+        resident_name_safe = html.escape(str(resident_name), quote=True)
+        property_display_safe = html.escape(str(property_display), quote=True)
+        issue_safe = html.escape(str(issue), quote=True)
+        status_label_safe = html.escape(str(status_label), quote=True)
+
     activity_rows += f"""
     <tr
         data-ticket-id="{id_safe}"
@@ -789,7 +808,7 @@ def dashboard():
         <td>{resident_name_safe}</td>
         <td class="property-cell">{property_display_safe}</td>
         <td class="issue-cell">{issue_safe}</td>
-        <td class="status-cell">{format_status_badge(status_label_safe)}</td>
+        <td class="status-cell">{format_status_badge(status_label)}</td>
         <td>
             <button class="delete-btn" onclick="deleteTicket(event, '{id_safe}', '{ticket_number_safe}')">
                 Delete
