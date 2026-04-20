@@ -768,14 +768,6 @@ def dashboard():
         status = r[7]
         submitted_at = r[8]
 
-        resident_phone = (r[2] or "").strip()
-
-        if resident_phone:
-            resident_phone_safe = escape(resident_phone)
-            phone_cell = f'<a href="tel:{resident_phone_safe}">{resident_phone_safe}</a>'
-        else:
-            phone_cell = "—"
-
         ticket_number = generate_ticket_number(ticket_id, submitted_at)
 
         if building and unit:
