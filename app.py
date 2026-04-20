@@ -808,7 +808,7 @@ def dashboard():
             onclick="openTicketModal(this)"
         >                       
             <td>{ticket_number_safe}</td>
-            <td>{submitted_at_safe}</td>
+            <td><span style="color:#94a3b8;">{submitted_at_safe}</span></td>
             <td>Maintenance Request</td>
             <td>{resident_name_safe}</td>
             <td>{phone_cell}</td>
