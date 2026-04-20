@@ -731,6 +731,7 @@ def dashboard():
         SELECT
             mr.id,
             mr.resident_name,
+            mr.resident_phone,
             COALESCE(p.property_name, 'Unassigned Community') AS property_name,
             mr.building_label,
             mr.unit_label,
@@ -759,12 +760,21 @@ def dashboard():
     for r in recent_requests:
         ticket_id = r[0]
         resident_name = r[1]
-        property_name = r[2]
-        building = (r[3] or "").strip()
-        unit = (r[4] or "").strip()
-        issue = r[5]
-        status = r[6]
-        submitted_at = r[7]
+        resident_phone = (r[2] or "").strip()
+        property_name = r[3]
+        building = (r[4] or "").strip()
+        unit = (r[5] or "").strip()
+        issue = r[6]
+        status = r[7]
+        submitted_at = r[8]
+
+        resident_phone = (r[2] or "").strip()
+
+        if resident_phone:
+            resident_phone_safe = escape(resident_phone)
+            phone_cell = f'<a href="tel:{resident_phone_safe}">{resident_phone_safe}</a>'
+        else:
+            phone_cell = "—"
 
         ticket_number = generate_ticket_number(ticket_id, submitted_at)
 
@@ -787,6 +797,7 @@ def dashboard():
         ticket_number_safe = html.escape(str(ticket_number), quote=True)
         submitted_at_safe = html.escape(str(submitted_at), quote=True)
         resident_name_safe = html.escape(str(resident_name), quote=True)
+        resident_phone_safe = html.escape(resident_phone, quote=True)
         property_display_safe = html.escape(str(property_display), quote=True)
         issue_safe = html.escape(str(issue), quote=True)
         status_label_safe = html.escape(str(status_label), quote=True)
@@ -802,11 +813,12 @@ def dashboard():
             data-issue="{issue_safe}"
             data-status="{status_label_safe}"
             onclick="openTicketModal(this)"
-        >
+        >                       
             <td>{ticket_number_safe}</td>
             <td>{submitted_at_safe}</td>
             <td>Maintenance Request</td>
             <td>{resident_name_safe}</td>
+            <td>{phone_cell}</td>
             <td class="property-cell">{property_display_safe}</td>
             <td class="issue-cell">{issue_safe}</td>
             <td class="status-cell">{format_status_badge(status_label)}</td>
@@ -1028,6 +1040,7 @@ def dashboard():
                                 <th>Time</th>
                                 <th>Event</th>
                                 <th>Client</th>
+                                <th>PHONE</th>
                                 <th>Property</th>
                                 <th>Issue</th>
                                 <th>Status</th>
@@ -1045,26 +1058,30 @@ def dashboard():
         </div>
     <script>
             async function deleteTicket(event, ticketId, ticketNumber) {
-                event.stopPropagation();
+    event.stopPropagation();
 
-                const confirmed = confirm(`Remove ticket ${ticketNumber} from the dashboard?`);
-                if (!confirmed) return;
+    const confirmed = confirm(`Remove ticket ${ticketNumber} from the dashboard?`);
+    if (!confirmed) return;
 
-                try {
-                    const response = await fetch(`/delete-ticket/${ticketId}`, {
-                        method: "POST"
-                    });
+    try {
+        const response = await fetch(`/delete-ticket/${ticketId}`, {
+            method: "POST",
+            credentials: "same-origin"
+        });
 
-                    if (!response.ok) {
-                        throw new Error("Delete request failed");
-                    }
+        if (!response.ok) {
+            const text = await response.text();
+            console.error("Delete failed:", response.status, text);
+            alert(`Delete failed: ${response.status}`);
+            return;
+        }
 
-                    window.location.reload();
-                } catch (error) {
-                    alert("Unable to remove ticket.");
-                    console.error(error);
-                }
-            }
+        window.location.reload();
+    } catch (error) {
+        alert("Unable to remove ticket.");
+        console.error(error);
+    }
+}
         </script>           
     </body>
     </html>
