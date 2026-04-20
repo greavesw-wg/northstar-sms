@@ -2,6 +2,7 @@ import psycopg2
 import os
 import csv
 import re
+import html
 
 from flask import Flask, request, jsonify, redirect, url_for, Response
 from flask_cors import CORS
