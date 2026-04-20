@@ -797,7 +797,8 @@ def dashboard():
         ticket_number_safe = html.escape(str(ticket_number), quote=True)
         submitted_at_safe = html.escape(str(submitted_at), quote=True)
         resident_name_safe = html.escape(str(resident_name), quote=True)
-        resident_phone_safe = html.escape(resident_phone, quote=True)
+        resident_phone_safe = html.escape(str(resident_phone), quote=True) if resident_phone else ""
+        phone_cell = f'<a href="tel:{resident_phone_safe}" onclick="event.stopPropagation()">{resident_phone_safe}</a>' if resident_phone_safe else "—"
         property_display_safe = html.escape(str(property_display), quote=True)
         issue_safe = html.escape(str(issue), quote=True)
         status_label_safe = html.escape(str(status_label), quote=True)
