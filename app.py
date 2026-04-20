@@ -729,6 +729,7 @@ def dashboard():
 
     cur.execute("""
         SELECT
+            mr.id,
             mr.resident_name,
             COALESCE(p.property_name, 'Unassigned Community') AS property_name,
             mr.building_label,
