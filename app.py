@@ -1043,10 +1043,51 @@ def dashboard():
                 </div>
             </div>
         </div>
+    <script>
+            async function deleteTicket(event, ticketId, ticketNumber) {
+                event.stopPropagation();
+
+                const confirmed = confirm(`Remove ticket ${ticketNumber} from the dashboard?`);
+                if (!confirmed) return;
+
+                try {
+                    const response = await fetch(`/delete-ticket/${ticketId}`, {
+                        method: "POST"
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Delete request failed");
+                    }
+
+                    window.location.reload();
+                } catch (error) {
+                    alert("Unable to remove ticket.");
+                    console.error(error);
+                }
+            }
+        </script>           
     </body>
     </html>
     """
     return page_html
+
+@app.route("/delete-ticket/<int:ticket_id>", methods=["POST"])
+@requires_auth
+def delete_ticket(ticket_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE maintenance_requests_v2
+        SET dashboard_status = 'hidden'
+        WHERE id = %s
+    """, (ticket_id,))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return ("", 204)
 
 @app.route("/toggle-service/<record_id>", methods=["POST"])
 def toggle_service(record_id):
