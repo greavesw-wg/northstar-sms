@@ -790,13 +790,13 @@ def dashboard():
         submitted_at_safe = html.escape(str(submitted_at), quote=True)
         resident_name_safe = html.escape(str(resident_name), quote=True)
         resident_phone_safe = html.escape(str(resident_phone), quote=True) if resident_phone else ""
-        phone_cell = f'<a href="tel:{resident_phone_safe}" onclick="event.stopPropagation()">{resident_phone_safe}</a>' if resident_phone_safe else "—"
+        phone_cell = f'<a href="tel:{resident_phone_safe}" onclick="event.stopPropagation()" class="phone-link">{resident_phone_safe}</a>' if resident_phone_safe else "—"
         property_display_safe = html.escape(str(property_display), quote=True)
         issue_safe = html.escape(str(issue), quote=True)
         status_label_safe = html.escape(str(status_label), quote=True)
 
         activity_rows += f"""
-        <tr
+        <tr 
             data-ticket-id="{id_safe}"
             data-ticket-number="{ticket_number_safe}"
             data-submitted-at="{submitted_at_safe}"
@@ -993,6 +993,16 @@ def dashboard():
         .status-item strong {{
             display: block;
             margin-bottom: 6px;
+        }}
+        .phone-link {{
+        color: #38bdf8;
+        font-weight: 600;
+        text-decoration: none;
+        }}
+
+        .phone-link:hover {{
+        color: #0ea5e9;
+        text-decoration: underline;
         }}
         </style>
     </head>
