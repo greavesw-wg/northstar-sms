@@ -787,6 +787,9 @@ def dashboard():
 
         id_safe = html.escape(str(ticket_id), quote=True)
         ticket_number_safe = html.escape(str(ticket_number), quote=True)
+        jitsi_room = f"NorthStar-{ticket_number}"
+        jitsi_room_safe = html.escape(str(jitsi_room), quote=True)
+        video_cell = f'<a href="https://meet.jit.si/{jitsi_room_safe}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="video-link">📹 Call</a>'
         submitted_at_safe = html.escape(str(submitted_at), quote=True)
         resident_name_safe = html.escape(str(resident_name), quote=True)
         resident_phone_safe = html.escape(str(resident_phone), quote=True) if resident_phone else ""
@@ -812,6 +815,7 @@ def dashboard():
             <td>Maintenance Request</td>
             <td>{resident_name_safe}</td>
             <td>{phone_cell}</td>
+            <td>{video_cell}</td>
             <td class="property-cell">{property_display_safe}</td>
             <td class="issue-cell">{issue_safe}</td>
             <td class="status-cell">{format_status_badge(status_label)}</td>
@@ -1004,6 +1008,16 @@ def dashboard():
         color: #0ea5e9;
         text-decoration: underline;
         }}
+        .video-link {{
+        color: #22c55e;
+        font-weight: 600;
+        text-decoration: none;
+        }}
+
+        .video-link:hover {{
+        color: #16a34a;
+        text-decoration: underline;
+        }}
         </style>
     </head>
     <body>
@@ -1039,15 +1053,16 @@ def dashboard():
                     <table class="ops-table">
                         <thead>
                             <tr>
-                                <th>Ticket #</th>
-                                <th>Time</th>
-                                <th>Event</th>
-                                <th>Client</th>
+                                <th>TICKET #</th>
+                                <th>TIME</th>
+                                <th>EVENT</th>
+                                <th>CLIENT</th>
                                 <th>PHONE</th>
-                                <th>Property</th>
-                                <th>Issue</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <th>VIDEO</th>
+                                <th>PROPERTY</th>
+                                <th>ISSUE</th>
+                                <th>STATUS</th>
+                                <th>ACTION</th>                              
                             </tr>
                         </thead>
                         <tbody>
