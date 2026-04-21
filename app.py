@@ -787,10 +787,17 @@ def dashboard():
 
         id_safe = html.escape(str(ticket_id), quote=True)
         ticket_number_safe = html.escape(str(ticket_number), quote=True)
-        jitsi_room = f"NorthStar-{ticket_number}"
+        clean_name = re.sub(r'[^a-zA-Z0-9]', '', resident_name)
+        jitsi_room = f"NorthStar-{ticket_number}-{clean_name}"
         jitsi_room_safe = html.escape(str(jitsi_room), quote=True)
         video_cell = f'<a href="https://meet.jit.si/{jitsi_room_safe}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="video-link">📹 Call</a>'
-        submitted_at_safe = html.escape(str(submitted_at), quote=True)
+        # Ensure datetime object
+        dt = datetime.fromisoformat(submitted_at) if isinstance(submitted_at, str) else submitted_at
+
+        # Format: April 20, 2026, 6:15 PM
+        formatted_time = dt.strftime("%B %d, %Y, %I:%M %p").replace(" 0", " ")
+
+        submitted_at_safe = html.escape(formatted_time, quote=True)
         resident_name_safe = html.escape(str(resident_name), quote=True)
         resident_phone_safe = html.escape(str(resident_phone), quote=True) if resident_phone else ""
         phone_cell = f'<a href="tel:{resident_phone_safe}" onclick="event.stopPropagation()" class="phone-link">{resident_phone_safe}</a>' if resident_phone_safe else "—"
