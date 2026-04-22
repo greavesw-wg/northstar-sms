@@ -744,7 +744,7 @@ def dashboard():
     total_requests = cur.fetchone()[0]
 
     cur.execute("""
-        SELECT
+       SELECT
             mr.id,
             mr.resident_name,
             mr.resident_phone,
@@ -753,12 +753,13 @@ def dashboard():
             mr.unit_label,
             mr.issue_description,
             mr.status,
+            mr.assigned_type,
             mr.submitted_at
         FROM maintenance_requests_v2 mr
         LEFT JOIN properties p ON mr.property_id = p.id
         WHERE COALESCE(mr.dashboard_status, 'visible') = 'visible'
         ORDER BY mr.submitted_at DESC
-        LIMIT 100
+        LIMIT 100               
     """)
 
     recent_requests = cur.fetchall()
