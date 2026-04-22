@@ -373,6 +373,20 @@ def maintenance_request():
         unit_id = None
         resident_id = None
 
+        assigned_type = "Outsource" if any(
+            keyword in issue.lower()
+            for keyword in
+            ["hvac", "ac", "air conditioning", "heater", "plumbing", "leak", "pipe", "electrical", "breaker", "pest",
+             "lock"]
+        ) else "In-House"
+
+        print(f"Assigned Type: {assigned_type}")
+
+        if assigned_type == "Outsource":
+            print("Trigger Vendor Coordination Loop")
+        else:
+            print("Handled by In-House Maintenance")
+
         cur.execute("""
         INSERT INTO maintenance_requests_v2 (
             client_id,
@@ -385,6 +399,7 @@ def maintenance_request():
             building_label,
             unit_label,
             issue_description,
+            assigned_type,
             status,
             acknowledgment_sent,
             acknowledgment_status,
@@ -406,6 +421,7 @@ def maintenance_request():
             building,
             unit,
             issue,
+            assigned_type,
             "new",
             False,  # acknowledgment_sent
             "not_sent",  # acknowledgment_status
@@ -766,7 +782,8 @@ def dashboard():
         unit = (r[5] or "").strip()
         issue = r[6]
         status = r[7]
-        submitted_at = r[8]
+        assigned_type = (r[8] or "").strip()
+        submitted_at = r[9]
 
         ticket_number = generate_ticket_number(ticket_id, submitted_at)
 
@@ -805,6 +822,8 @@ def dashboard():
         issue_safe = html.escape(str(issue), quote=True)
         status_label_safe = html.escape(str(status_label), quote=True)
 
+        assigned_type_safe = html.escape(str(assigned_type), quote=True)
+
         activity_rows += f"""
         <tr 
             data-ticket-id="{id_safe}"
@@ -825,6 +844,7 @@ def dashboard():
             <td>{video_cell}</td>
             <td class="property-cell">{property_display_safe}</td>
             <td class="issue-cell">{issue_safe}</td>
+            <td>{assigned_type_safe}</td>
             <td class="status-cell">{format_status_badge(status_label)}</td>
             <td>
                 <button class="delete-btn" onclick="deleteTicket(event, '{id_safe}', '{ticket_number_safe}')">
@@ -1068,6 +1088,7 @@ def dashboard():
                                 <th>VIDEO</th>
                                 <th>PROPERTY</th>
                                 <th>ISSUE</th>
+                                <th>ASSIGNED</th>
                                 <th>STATUS</th>
                                 <th>ACTION</th>                              
                             </tr>
