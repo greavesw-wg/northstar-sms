@@ -426,7 +426,23 @@ def maintenance_request():
         else:
             print("Handled by In-House Maintenance")
 
-        routing_phone = "6096385183"  # Hunters Glen routing number
+        # ------------------------------------------------------------
+        # NORTH STAR ROUTING CHANNELS
+        # One routing number per community/channel.
+        # Only ONE should be active for this current maintenance form.
+        # ------------------------------------------------------------
+
+        routing_phone = "6094551240"  # Channel 01 - Hunters Glen Apartments
+
+        # routing_phone = "XXXXXXXXXX"  # Channel 02 - Deer Creek
+        # routing_phone = "XXXXXXXXXX"  # Channel 03 - Community 03
+        # routing_phone = "XXXXXXXXXX"  # Channel 04 - Community 04
+        # routing_phone = "XXXXXXXXXX"  # Channel 05 - Community 05
+        # routing_phone = "XXXXXXXXXX"  # Channel 06 - Community 06
+        # routing_phone = "XXXXXXXXXX"  # Channel 07 - Community 07
+        # routing_phone = "XXXXXXXXXX"  # Channel 08 - Community 08
+        # routing_phone = "XXXXXXXXXX"  # Channel 09 - Community 09
+        # routing_phone = "XXXXXXXXXX"  # Channel 10 - Community 10
 
         cur.execute("""
             SELECT create_maintenance_request_from_intake(
