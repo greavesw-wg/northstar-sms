@@ -373,11 +373,33 @@ def maintenance_request():
         unit_id = None
         resident_id = None
 
+        issue_lower = issue.lower()
+
+        outsourced_keywords = [
+            "hvac",
+            "heat",
+            "heating",
+            "no heat",
+            "air conditioning",
+            "ac",
+            "a/c",
+            "cooling",
+            "refrigerator",
+            "fridge",
+            "appliance",
+            "plumbing",
+            "leak",
+            "leaking",
+            "water",
+            "pipe",
+            "electrical",
+            "breaker",
+            "pest",
+            "lock"
+        ]
+
         assigned_type = "Outsource" if any(
-            keyword in issue.lower()
-            for keyword in
-            ["hvac", "ac", "air conditioning", "heater", "plumbing", "leak", "pipe", "electrical", "breaker", "pest",
-             "lock"]
+            keyword in issue_lower for keyword in outsourced_keywords
         ) else "In-House"
 
         print(f"Assigned Type: {assigned_type}")
