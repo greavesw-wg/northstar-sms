@@ -431,10 +431,12 @@ def maintenance_request():
             assigned_type
         ))
 
-        request_id = cur.fetchone()[0]
-        conn.commit()
+        result = cur.fetchone()
 
-        request_id = cur.fetchone()[0]
+        if result is None:
+            raise Exception("Function returned NULL")
+
+        request_id = result[0]
         conn.commit()
 
         sms_phone = format_phone(phone)
