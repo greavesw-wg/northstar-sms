@@ -387,51 +387,19 @@ def maintenance_request():
         else:
             print("Handled by In-House Maintenance")
 
+        routing_phone = "6096385183"  # Hunters Glen routing number
+
         cur.execute("""
-        INSERT INTO maintenance_requests_v2 (
-            client_id,
-            property_id,
-            building_id,
-            unit_id,
-            resident_id,
-            resident_name,
-            resident_phone,
-            building_label,
-            unit_label,
-            issue_description,
-            assigned_type,
-            status,
-            acknowledgment_sent,
-            acknowledgment_status,
-            source_channel,
-            routing_status,
-            dashboard_status,
-            submitted_at
-        )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
-        RETURNING id
+            SELECT create_maintenance_request_from_intake(%s, %s, %s, %s, %s)
         """, (
-            None,  # client_id
-            property_id,
-            building_id,
-            unit_id,
-            resident_id,
-            name,
-            phone,
+            routing_phone,
             building,
             unit,
-            issue,
-            assigned_type,
-            "new",
-            False,  # acknowledgment_sent
-            "not_sent",  # acknowledgment_status
-            "web_form",  # source_channel
-            "pending",  # routing_status
-            "visible"  # dashboard_status
+            name,
+            issue
         ))
 
-        request_row = cur.fetchone()
-        request_id = request_row[0]
+        request_id = cur.fetchone()[0]
         conn.commit()
 
         sms_phone = format_phone(phone)
