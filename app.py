@@ -418,6 +418,7 @@ def maintenance_request():
                 %s::text,
                 %s::text,
                 %s::text,
+                %s::text,
                 %s::text
             )
         """, (
@@ -425,9 +426,13 @@ def maintenance_request():
             building,
             unit,
             name,
+            phone,
             issue,
             assigned_type
         ))
+
+        request_id = cur.fetchone()[0]
+        conn.commit()
 
         request_id = cur.fetchone()[0]
         conn.commit()
