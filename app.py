@@ -388,19 +388,36 @@ def maintenance_request():
             "fridge",
             "appliance",
             "plumbing",
-            "leak",
-            "leaking",
-            "water",
-            "pipe",
             "electrical",
             "breaker",
             "pest",
-            "lock"
+            "lock",
+            "roof",
+            "leaking roof",
+            "roof leak"
         ]
 
-        assigned_type = "Outsource" if any(
-            keyword in issue_lower for keyword in outsourced_keywords
-        ) else "In-House"
+        in_house_keywords = [
+            "faucet",
+            "sink",
+            "toilet",
+            "cabinet",
+            "door",
+            "light",
+            "bulb",
+            "hallway light",
+            "window",
+            "minor leak",
+            "faucet leaking",
+            "leaking faucet"
+        ]
+
+        if any(keyword in issue_lower for keyword in in_house_keywords):
+            assigned_type = "In-House"
+        elif any(keyword in issue_lower for keyword in outsourced_keywords):
+            assigned_type = "Outsource"
+        else:
+            assigned_type = "In-House"
 
         print(f"Assigned Type: {assigned_type}")
 
