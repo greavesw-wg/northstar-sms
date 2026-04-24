@@ -412,13 +412,21 @@ def maintenance_request():
         routing_phone = "6096385183"  # Hunters Glen routing number
 
         cur.execute("""
-            SELECT create_maintenance_request_from_intake(%s, %s, %s, %s, %s)
+            SELECT create_maintenance_request_from_intake(
+                %s::text,
+                %s::text,
+                %s::text,
+                %s::text,
+                %s::text,
+                %s::text
+            )
         """, (
             routing_phone,
             building,
             unit,
             name,
-            issue
+            issue,
+            assigned_type
         ))
 
         request_id = cur.fetchone()[0]
