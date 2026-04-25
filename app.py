@@ -14,6 +14,13 @@ from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from openai import OpenAI
 
+from ai_engine.maintenance_triage_engine import (
+    triage_message,
+    generate_work_order,
+    log_triage_event
+)
+from pathlib import Path
+
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -350,6 +357,16 @@ def format_phone(phone: str) -> str:
     return f"+{digits}"
 
 
+def next_work_order_sequence() -> int:
+    logs_dir = Path("logs")
+    work_orders_file = logs_dir / "work_orders.csv"
+
+    if not work_orders_file.exists():
+        return 1
+
+    with open(work_orders_file, "r", encoding="utf-8") as f:
+        return max(sum(1 for _ in f), 1)
+
 @app.route("/maintenance-request", methods=["POST"])
 def maintenance_request():
     data = request.get_json(silent=True) or {}
@@ -471,6 +488,43 @@ def maintenance_request():
 
         request_id = result[0]
         conn.commit()
+
+        # -------------------------------
+        # AI TRIAGE + LOGGING + WORK ORDER
+        # -------------------------------
+
+        try:
+            request_payload = {
+                "request_id": request_id,
+                "property_name": "Hunters Glen Apartments",
+                "building": building,
+                "unit_number": unit,
+                "resident_name": name,
+                "resident_phone": phone,
+                "message": issue,
+                "assigned_type": assigned_type,
+            }
+
+            triage = triage_message(request_payload)
+
+            log_triage_event({
+                "request_id": request_id,
+                "tenant": name,
+                "phone": phone,
+                "building": building,
+                "unit": unit,
+                "issue": issue,
+                "triage": triage
+            })
+
+            work_order = generate_work_order(
+                request_payload,
+                triage,
+                sequence_number=next_work_order_sequence(),
+            )
+
+        except Exception as e:
+            print(f"[TRIAGE ERROR] {e}")
 
         sms_phone = format_phone(phone)
 
